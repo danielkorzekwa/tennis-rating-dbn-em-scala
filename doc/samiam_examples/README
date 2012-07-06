@@ -11,6 +11,6 @@ Picture: S0_R1_R2_Winner.png
 P1 won against P2
 
 Picture: S0_R1_R2_Winner_S1_R2_R3_Winner.png
-Player P1 won again player P2 and player P2 won against player P3. 
-In this example, the evidence from the future about the game between player P2 and P3 influences the skills of player P2 in the past, 
+Player P1 won against player P2 and player P2 won against player P3. 
+In this example, the evidence from the future about the game between player P2 and P3 influences the skills of player P2 at time 1 in the past, 
 who was playing against player P1. Outcome of the game between players P1 and P3 in time slice 3 depends on the outcome of the game between player P2 and P3 in time slice 2.
