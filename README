@@ -1,1 +1,3 @@
 Tennis Ratings based on Dynamic Bayesian Networks and Expectation Maximization, implemented in Scala.
+
+Please refer https://github.com/danielkorzekwa/tennis-rating-dbn-em-scala/tree/master/doc for more details.
