@@ -133,6 +133,7 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
    *
    */
   def marginal(variableNames: List[String]): Factor = {
+    require(!variableNames.isEmpty, "List of marginal variables is empty")
 
     /**Tuple2 [variable, index]*/
     val marginalVariables: Seq[Tuple2[Var, Int]] = variables.zipWithIndex.filter { case (v, index) => variableNames.contains(v.name) }
@@ -151,7 +152,7 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
     val marginalValues = marginalAssignmentValues.toList.sortBy(v => assignmentToIndex(v._1, marginalDimensions)).map { case (a, v) => v }
     println(marginalValues)
     val marginalFactor = Factor(marginalVariables.map(v => v._1), marginalValues)
-    marginalFactor.normalize
+    marginalFactor
   }
 
   /**Normalize all factor values so they sum up to 1.*/
