@@ -226,19 +226,68 @@ class FactorTest {
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore)
 
-    val marginal = fullJoinFactor.marginal(List("R1", "R2")).normalize
+    val marginalFactor = fullJoinFactor.marginal(List("R1", "R2")).normalize
 
-    assertEquals(Var("R1", ("1", "2", "3")) :: Var("R2", ("1", "2", "3")) :: Nil, marginal.variables)
-    assertEquals(9, marginal.values.size)
-    assertEquals(0.055, marginal.values(0), 0.001)
-    assertEquals(0.011, marginal.values(1), 0.001)
-    assertEquals(0.0255, marginal.values(2), 0.001)
-    assertEquals(0.051, marginal.values(0), 0.001)
-    assertEquals(0.0341, marginal.values(1), 0.001)
-    assertEquals(0.025, marginal.values(2), 0.001)
-    assertEquals(0.051, marginal.values(0), 0.001)
-    assertEquals(0.034, marginal.values(1), 0.001)
-    assertEquals(0.025, marginal.values(2), 0.001)
+    assertEquals(Var("R1", ("1", "2", "3")) :: Var("R2", ("1", "2", "3")) :: Nil, marginalFactor.variables)
+    assertEquals(9, marginalFactor.values.size)
+    assertEquals(0.055, marginalFactor.values(0), 0.001)
+    assertEquals(0.055, marginalFactor.values(1), 0.001)
+    assertEquals(0.055, marginalFactor.values(2), 0.001)
+    assertEquals(0.111, marginalFactor.values(3), 0.001)
+    assertEquals(0.111, marginalFactor.values(4), 0.001)
+    assertEquals(0.111, marginalFactor.values(5), 0.001)
+    assertEquals(0.166, marginalFactor.values(6), 0.001)
+    assertEquals(0.166, marginalFactor.values(7), 0.001)
+    assertEquals(0.166, marginalFactor.values(8), 0.001)
+
+    val singleMarginal = marginalFactor.marginal("R1" :: Nil).normalize
+    assertEquals(List(Var("R1", ("1", "2", "3"))), singleMarginal.variables)
+    assertEquals(3, singleMarginal.values.size)
+    assertEquals(0.1666, singleMarginal.values(0), 0.001)
+    assertEquals(0.333, singleMarginal.values(1), 0.001)
+    assertEquals(0.5, singleMarginal.values(2), 0.001)
+  }
+
+  @Test def marginal_two_variables_with_evidence {
+    val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    var factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
+    val fullJoinFactor = factorR1.product(factorR2).product(factorScore).evidence(("Score", "W") :: Nil)
+
+    val marginalFactor = fullJoinFactor.marginal(List("R1", "R2")).normalize
+
+    assertEquals(Var("R1", ("1", "2", "3")) :: Var("R2", ("1", "2", "3")) :: Nil, marginalFactor.variables)
+    assertEquals(9, marginalFactor.values.size)
+    assertEquals(0.111, marginalFactor.values(0), 0.001)
+    assertEquals(0.074, marginalFactor.values(1), 0.001)
+    assertEquals(0.055, marginalFactor.values(2), 0.001)
+    assertEquals(0.148, marginalFactor.values(3), 0.001)
+    assertEquals(0.111, marginalFactor.values(4), 0.001)
+    assertEquals(0.088, marginalFactor.values(5), 0.001)
+    assertEquals(0.166, marginalFactor.values(6), 0.001)
+    assertEquals(0.133, marginalFactor.values(7), 0.001)
+    assertEquals(0.111, marginalFactor.values(8), 0.001)
+
+    val singleMarginal = marginalFactor.marginal("R1" :: Nil).normalize
+    assertEquals(List(Var("R1", ("1", "2", "3"))), singleMarginal.variables)
+    assertEquals(3, singleMarginal.values.size)
+    assertEquals(0.2407, singleMarginal.values(0), 0.001)
+    assertEquals(0.348, singleMarginal.values(1), 0.001)
+    assertEquals(0.411, singleMarginal.values(2), 0.001)
+  }
+
+  @Test def marginal_three_variables_with_evidence {
+    val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    var factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
+    val fullJoinFactor = factorR1.product(factorR2).product(factorScore).evidence(("Score", "W") :: Nil)
+
+    val marginalFactor = fullJoinFactor.marginal(List("R1", "R2", "Score")).normalize
+
+    //  println(marginalFactor.evidence(("R1", "1") :: ("R2", "2") :: Nil))
+    // assertEquals(0, marginalFactor.evidence(("R1", "1") :: ("R2", "2") :: Nil).values(0), 0.001)
+    // assertEquals(1, marginalFactor.evidence(("R1", "1") :: ("R2", "2") :: Nil).values(1), 0.001)
+
   }
 
   /**Tests for normalize() function.*/

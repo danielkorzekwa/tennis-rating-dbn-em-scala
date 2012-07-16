@@ -150,7 +150,7 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
 
     val marginalAssignmentValues = assignmentMapping.groupBy(m => m._1).mapValues(v => v.map(v => v._2).sum)
     val marginalValues = marginalAssignmentValues.toList.sortBy(v => assignmentToIndex(v._1, marginalDimensions)).map { case (a, v) => v }
-    println(marginalValues)
+    
     val marginalFactor = Factor(marginalVariables.map(v => v._1), marginalValues)
     marginalFactor
   }
