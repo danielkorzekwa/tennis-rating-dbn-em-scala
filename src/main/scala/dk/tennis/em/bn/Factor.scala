@@ -30,7 +30,7 @@ object Factor {
    * @param values List of all possible discrete variable values.
    *
    */
-  case class Var(name: String, values: List[String]) {
+  case class Var(name: String, values: Seq[String]) {
     require(!values.isEmpty, "List of variable values can't be empty")
   }
 }
@@ -58,48 +58,50 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
   require(values.size == dimensions.product, "Number of factor values must be equal to product of variable dimensions")
 
   /**
-   * Produce product of two factors.
-   *
-   * @return Product of factors.
-   */
-  def product(factor: Factor): Factor = {
-
-    val newVariables = this.variables.union(factor.variables).distinct
-    val newDimensions = newVariables.map(v => v.values.size)
-
-    /** Map variable indices of input factor to variables indices in product factor.*/
-    def mapToNewFactor(factor: Factor): Seq[Int] = {
-      factor.variables.map(v => newVariables.indexOf(v))
-    }
-    val mapFactorA = mapToNewFactor(this)
-    val mapFactorB = mapToNewFactor(factor)
-
-    val factorADimensions = this.dimensions
-    val factorBDimensions = factor.variables.map(v => v.values.size)
-
-    val assignments = computeAllAssignments(newDimensions)
-
-    val values = assignments.map { a =>
-      val factorAAssignment = mapFactorA.map(indice => a(indice))
-      val factorBAssignment = mapFactorB.map(indice => a(indice))
-      val factorAValue = this.values(assignmentToIndex(factorAAssignment, factorADimensions))
-      val factorBValue = factor.values(assignmentToIndex(factorBAssignment, factorBDimensions))
-
-      val factorValue = factorAValue * factorBValue
-      factorValue
-    }
-
-    Factor(newVariables, values)
-  }
-
-  /**
    * Multiply this factor by all factors in a 'factors' parameter.
    *
    * @return Product of factors.
    *
    */
-  def product(factors: Seq[Factor]): Factor = {
-    factors.foldLeft(this)((factorProduct, factor) => factorProduct.product(factor))
+  def product(factors: Factor*): Factor = {
+
+    /**
+     * Produce product of two factors.
+     *
+     * @return Product of factors.
+     */
+    def productTwoFactors(factorA: Factor, factorB: Factor): Factor = {
+
+      val newVariables = factorA.variables.union(factorB.variables).distinct
+      val newDimensions = newVariables.map(v => v.values.size)
+
+      /** Map variable indices of input factor to variables indices in product factor.*/
+      def mapToNewFactor(factor: Factor): Seq[Int] = {
+        factor.variables.map(v => newVariables.indexOf(v))
+      }
+      val mapFactorA = mapToNewFactor(factorA)
+      val mapFactorB = mapToNewFactor(factorB)
+
+      val factorADimensions = factorA.dimensions
+      val factorBDimensions = factorB.variables.map(v => v.values.size)
+
+      val assignments = computeAllAssignments(newDimensions)
+
+      val values = assignments.map { a =>
+        val factorAAssignment = mapFactorA.map(indice => a(indice))
+        val factorBAssignment = mapFactorB.map(indice => a(indice))
+        val factorAValue = factorA.values(assignmentToIndex(factorAAssignment, factorADimensions))
+        val factorBValue = factorB.values(assignmentToIndex(factorBAssignment, factorBDimensions))
+
+        val factorValue = factorAValue * factorBValue
+        factorValue
+      }
+
+      Factor(newVariables, values)
+    }
+
+    factors.foldLeft(this)((factorProduct, factor) => productTwoFactors(factorProduct, factor))
+
   }
 
   /**
@@ -109,7 +111,7 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
    *
    * @return Factor consistent with evidence.
    */
-  def evidence(evidence: List[Tuple2[String, String]]): Factor = {
+  def evidence(evidence: Tuple2[String, String]*): Factor = {
 
     val newValues = evidence.foldLeft(values) { (values, evidence) =>
 
@@ -132,7 +134,7 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
    * @return Marginals over variables specified by 'variableNames' parameter.
    *
    */
-  def marginal(variableNames: List[String]): Factor = {
+  def marginal(variableNames: String*): Factor = {
     require(!variableNames.isEmpty, "List of marginal variables is empty")
 
     /**Tuple2 [variable, index]*/
@@ -150,7 +152,7 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
 
     val marginalAssignmentValues = assignmentMapping.groupBy(m => m._1).mapValues(v => v.map(v => v._2).sum)
     val marginalValues = marginalAssignmentValues.toList.sortBy(v => assignmentToIndex(v._1, marginalDimensions)).map { case (a, v) => v }
-    
+
     val marginalFactor = Factor(marginalVariables.map(v => v._1), marginalValues)
     marginalFactor
   }
