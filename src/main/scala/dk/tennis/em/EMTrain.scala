@@ -1,6 +1,7 @@
 package dk.tennis.em
 
 import EMTrain._
+import dbn.DbnTennis._
 
 /**
  * Learn parameters for Dynamic Bayesian Network, which models tennis ratings and match results over the time.
@@ -12,15 +13,23 @@ import EMTrain._
 
 object EMTrain {
 
-  case class Rating(ratingValue: Int, prob: Double)
-  case class EmissionProb(ratingOnServe: Int, ratingOnReturn: Int, prob: Double)
-  class TransitionProb(currRating: Int, prevRating: Int, prob: Double)
+  /**
+   *  Refer to DbnTennis on how prior,emission and transition probabilities are represented.
+   */
+  case class Params(priorProb: List[Double], emissionProb: List[Double], transitionProb: List[Double])
 
-  case class Params(priorProb: List[Rating], emissionProb: List[EmissionProb], transitionProb: List[TransitionProb])
-
-  case class SufficientStats
-
-  case class Result
+  /**
+   * @param priorStats
+   * @param priorStatsNum Number of cases (prior rating variables) used for aggregating prior statistics.
+   * @param emissionStats
+   * @param emissionStatsNum
+   * @param transitionStats
+   * @param transitionStatsNum
+   *
+   * Refer to DbnTennis on how prior,emission and transition stats are represented.
+   */
+  case class SufficientStats(priorStats: Seq[Double], priorStatsNum: Int, emissionStats: Seq[Double], emissionStatsNum: Int,
+    transitionStats: Seq[Double], transitionStatsNum: Int)
 }
 
 trait EMTrain {
@@ -28,7 +37,7 @@ trait EMTrain {
   /**
    * Learn parameters with EM algorithm.
    *
-   * @param parameters Parameters (prior, emission and transition) to be learned with Expectation Maximization.
+   * @param parameters Parameters (prior, emission and transition) to be learned with Expectation Maximizatio algorithm.
    * @param results Tennis results used as observed variables in dynamic bayesian network, which represents player's skills and tennis match results over the time.
    * @param iterNum Number of iterations, for which EM is executed.
    * @progress Allows for tracking progress of algorithm. (currentIteration, Log likelihood) => Unit
@@ -41,10 +50,11 @@ trait EMTrain {
   /**
    * E-step of EM algorithm.
    *
-   * @param parameters Parameters (prior, emission and transition),
-   * which are used for building dynamic bayesian network and performing bayesian inference for a purpose of collecting sufficient statistics.
+   * @param parameters Parameters (prior, emission and transition) used for building dynamic bayesian network
+   * and performing bayesian inference, for a purpose of collecting sufficient statistics.
    *
-   * @param results Tennis results used as observed variables in dynamic bayesian network, which represents player's skills and tennis match results over the time.
+   * @param results Tennis results used as observed variables in dynamic bayesian network.
+   * They represent player's skills and tennis match results over the time.
    *
    * @return Sufficient statistics (Refer to EM algorithm, 'Probabilistic Graphical Models: Principles and Techniques' book by Daphne Koller and Nir Friedman)
    */

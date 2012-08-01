@@ -2,6 +2,8 @@ package dk.tennis.em
 
 import EMTrain._
 import scala.annotation.tailrec
+import dbn.GenericDbnTennis
+import dbn.DbnTennis._
 
 /**
  * @see EMTrain
@@ -26,7 +28,17 @@ class GenericEMTrain extends EMTrain {
 
   /** @see EMTrain */
   def expectationStep(parameters: Params, results: List[Result]): SufficientStats = {
-    SufficientStats()
+
+    val dbnTennis = new GenericDbnTennis(parameters.priorProb, parameters.emissionProb, parameters.transitionProb)
+    results.foreach(r => dbnTennis.addResult(r))
+
+    val priorRatings = dbnTennis.getRatingPriorProbabilities()
+
+    val priorRatingsStats = priorRatings.reduceLeft { (reduced, rating) =>
+      reduced.zip(rating).map(e => e._1 + e._2)
+    }
+
+    SufficientStats(priorRatingsStats, priorRatings.size, Nil, 0, Nil, 0)
   }
 
   /** @see EMTrain */
