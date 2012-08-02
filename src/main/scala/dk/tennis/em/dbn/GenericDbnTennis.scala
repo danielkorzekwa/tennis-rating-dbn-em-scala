@@ -80,8 +80,12 @@ class GenericDbnTennis(priorProb: List[Double], emissionProb: List[Double], tran
         "Adding result from the past is not permitted. Adding time slice: %d, the newest added time slice: %d.".format(result.timeSlice, maxTimeSlice))
     }
 
+    if (!playerResultExists(result.playerA, result.timeSlice)) addPlayerFactor(result.playerA, result.timeSlice)
+    if (!playerResultExists(result.playerB, result.timeSlice)) addPlayerFactor(result.playerB, result.timeSlice)
+
+    addScoreFactor(result)
+
     results += result
-    addResultToFactors(result)
   }
 
   /**
@@ -96,40 +100,56 @@ class GenericDbnTennis(priorProb: List[Double], emissionProb: List[Double], tran
   /**Returns underlying list of factors for dynamic bayesian network.*/
   def getFactors(): List[Factor] = factors.toList
 
-  private def priorVarName(playerName: String, timeSlice: Int) = "%s_rating_%d".format(playerName, timeSlice)
+  /**Add  player factor to factor list if not exist yet (either prior or transition factor)*/
+  private def addPlayerFactor(playerName: String, timeSlice: Int) = {
 
-  /**Add prior factor to factor list if not exist yet, then return prior factor.*/
-  private def getOrElseUpdatePriorFactor(playerName: String): Factor = {
-    val factorOption = factors.filter(f => f.variables.size == 1).find(f => f.variables.head.name.equals(playerName))
-    factorOption.getOrElse {
+    val prevTimeSlices = results.filter(r => r.timeSlice < timeSlice && (r.playerA.equals(playerName) || r.playerB.equals(playerName))).map(r => r.timeSlice).toList
 
-      val priorFactorValues = (1 to priorProb.size).map(_.toString)
-      val priorFactorProbs = priorProb
-      val factor = Factor(Var(playerName, priorFactorValues), priorFactorProbs: _*)
+    prevTimeSlices match {
+      case Nil => addPlayerPriorFactor(playerName, timeSlice)
+      case prevTimeSlices => addPlayerTransitionFactor(playerName, prevTimeSlices.max, timeSlice)
+    }
+
+  }
+
+  private def addPlayerPriorFactor(playerName: String, timeSlice: Int) {
+
+    val playerVar = createPlayerVariable(playerName, timeSlice)
+    val factor = Factor(playerVar, priorProb: _*)
+    factors += factor
+  }
+
+  private def addPlayerTransitionFactor(playerName: String, maxPrevTimeSlice: Int, timeSlice: Int) {
+
+    for (i <- maxPrevTimeSlice until timeSlice) {
+      val varCurr = createPlayerVariable(playerName, i)
+      val varNext = createPlayerVariable(playerName, i + 1)
+      val varValues = (1 to transitionProb.size).map(_.toString)
+      val factor = Factor(varCurr, varNext, transitionProb: _*)
       factors += factor
-      factor
     }
   }
 
-  private def addResultToFactors(result: Result) = {
+  private def addScoreFactor(result: Result) = {
 
-    val playerAPriorVarName = priorVarName(result.playerA, result.timeSlice)
-    val playerBPriorVarName = priorVarName(result.playerB, result.timeSlice)
+    val playerAVar = createPlayerVariable(result.playerA, result.timeSlice)
+    val playerBVar = createPlayerVariable(result.playerB, result.timeSlice)
+
     val scoreVarName = "score_%s_%s_%d".format(result.playerA, result.playerB, result.timeSlice)
-
-    val playerAPriorFactor = getOrElseUpdatePriorFactor(playerAPriorVarName)
-    val playerBPriorFactor = getOrElseUpdatePriorFactor(playerBPriorVarName)
-
     val emissionFactor = Factor(
-      playerAPriorFactor.variables.head ::
-        playerBPriorFactor.variables.head ::
-        Var(scoreVarName, ("w", "l")) :: Nil,
+      playerAVar :: playerBVar :: Var(scoreVarName, ("w", "l")) :: Nil,
       emissionProb)
 
     implicit def booleanToString(value: Boolean): String = if (value) "w" else "l"
-      
     val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName, booleanToString(result.playerAWinner))).normalize()
 
     factors += emissionFactorWithEvidence
   }
+
+  private def createPlayerVariable(playerName: String, timeSlice: Int): Var = {
+    val priorFactorValues = (1 to priorProb.size).map(_.toString)
+    Var("%s_rating_%d".format(playerName, timeSlice), priorFactorValues)
+  }
+
+  private def playerResultExists(playerName: String, timeSlice: Int): Boolean = results.find(r => r.timeSlice == timeSlice && (r.playerA.equals(playerName) || r.playerB.equals(playerName))).isDefined
 }
