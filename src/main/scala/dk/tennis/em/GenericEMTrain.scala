@@ -2,8 +2,9 @@ package dk.tennis.em
 
 import EMTrain._
 import scala.annotation.tailrec
-import dbn.GenericDbnTennis
+import dbn._
 import dbn.DbnTennis._
+import dk.tennis.em.dbn.GenericInferDbnTennis
 
 /**
  * @see EMTrain
@@ -32,7 +33,7 @@ class GenericEMTrain extends EMTrain {
     val dbnTennis = new GenericDbnTennis(parameters.priorProb, parameters.emissionProb, parameters.transitionProb)
     results.foreach(r => dbnTennis.addResult(r))
 
-    val priorRatings = dbnTennis.getRatingPriorProbabilities()
+    val priorRatings = GenericInferDbnTennis.getRatingPriorProbabilities(dbnTennis.getFactors())
 
     val priorRatingsStats = priorRatings.reduceLeft { (reduced, rating) =>
       reduced.zip(rating).map(e => e._1 + e._2)

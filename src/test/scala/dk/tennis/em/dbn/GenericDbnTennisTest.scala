@@ -61,36 +61,6 @@ class GenericDbnTennisTest {
   }
 
   /**
-   * Tests for getPriorRating
-   *
-   */
-
-  @Test def getPriorRating_no_results_exist {
-    val priorRating = dbnTennis.getRatingPriorProbabilities()
-    assertEquals(Nil, priorRating)
-  }
-
-  @Test def getPriorRating_single_result {
-    dbnTennis.addResult(Result("playerA", "playerB", true, 1))
-
-    val priorRatings = dbnTennis.getRatingPriorProbabilities()
-
-    assertRating(List(0.1366, 0.5033, 0.36), priorRatings(0), 0.0001)
-    assertRating(List(0.2633, 0.49666, 0.24), priorRatings(1), 0.0001)
-  }
-
-  @Test def getPriorRating_two_results_for_player_A_in_time_slice_4 {
-    dbnTennis.addResult(Result("playerA", "playerB", true, 4))
-    dbnTennis.addResult(Result("playerA", "playerC", true, 4))
-
-    val priorRatings = dbnTennis.getRatingPriorProbabilities()
-
-    assertRating(List(0.0904, 0.4909, 0.4185), priorRatings(0), 0.0001)
-    assertRating(List(0.2611, 0.4972, 0.2415), priorRatings(1), 0.0001)
-    assertRating(List(0.2611, 0.4972, 0.2415), priorRatings(2), 0.0001)
-  }
-
-  /**
    * Tests for getFactors - check prior and emission factors.
    */
   @Test(expected = classOf[IllegalArgumentException]) def addToFactors_single_result_duplicate {
@@ -198,6 +168,87 @@ class GenericDbnTennisTest {
     assertEquals(emmissionFactorAC.values, factors(6).values.map(v => (v * 100).toInt))
   }
 
+  @Test def addToFactors_AB_in_time_4_BC_in_time_5 {
+    dbnTennis.addResult(Result("playerA", "playerB", true, 4))
+    dbnTennis.addResult(Result("playerB", "playerC", true, 5))
+    val factors = dbnTennis.getFactors()
+
+    assertEquals(6, factors.size)
+
+    assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(0))
+    assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
+
+    val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
+      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+    assertEquals(emmissionFactorAB.variables, factors(2).variables)
+    assertEquals(emmissionFactorAB.values, factors(2).values.map(v => (v * 100).toInt))
+
+    assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), Var("playerB_rating_5", ("1", "2", "3")), transitionProb: _*), factors(3))
+    assertEquals(Factor(Var("playerC_rating_5", ("1", "2", "3")), priorProb: _*), factors(4))
+
+    val emmissionFactorAC = Factor(Var("playerB_rating_5", ("1", "2", "3")), Var("playerC_rating_5", ("1", "2", "3")), Var("score_playerB_playerC_5", ("w", "l")),
+      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+    assertEquals(emmissionFactorAC.variables, factors(5).variables)
+    assertEquals(emmissionFactorAC.values, factors(5).values.map(v => (v * 100).toInt))
+  }
+
+  @Test def addToFactors_AB_in_time_4_BC_in_time_6 {
+    dbnTennis.addResult(Result("playerA", "playerB", true, 4))
+    dbnTennis.addResult(Result("playerB", "playerC", true, 6))
+    val factors = dbnTennis.getFactors()
+
+    assertEquals(7, factors.size)
+
+    assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(0))
+    assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
+
+    val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
+      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+    assertEquals(emmissionFactorAB.variables, factors(2).variables)
+    assertEquals(emmissionFactorAB.values, factors(2).values.map(v => (v * 100).toInt))
+
+    assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), Var("playerB_rating_5", ("1", "2", "3")), transitionProb: _*), factors(3))
+    assertEquals(Factor(Var("playerB_rating_5", ("1", "2", "3")), Var("playerB_rating_6", ("1", "2", "3")), transitionProb: _*), factors(4))
+    assertEquals(Factor(Var("playerC_rating_6", ("1", "2", "3")), priorProb: _*), factors(5))
+
+    val emmissionFactorAC = Factor(Var("playerB_rating_6", ("1", "2", "3")), Var("playerC_rating_6", ("1", "2", "3")), Var("score_playerB_playerC_6", ("w", "l")),
+      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+    assertEquals(emmissionFactorAC.variables, factors(6).variables)
+    assertEquals(emmissionFactorAC.values, factors(6).values.map(v => (v * 100).toInt))
+  }
+
+  @Test def addToFactors_AB_in_time_4_AC_in_time_5_BC_in_5 {
+    dbnTennis.addResult(Result("playerA", "playerB", true, 4))
+    dbnTennis.addResult(Result("playerA", "playerC", true, 5))
+    dbnTennis.addResult(Result("playerB", "playerC", true, 5))
+    val factors = dbnTennis.getFactors()
+
+    assertEquals(8, factors.size)
+
+    assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(0))
+    assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
+
+    val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
+      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+    assertEquals(emmissionFactorAB.variables, factors(2).variables)
+    assertEquals(emmissionFactorAB.values, factors(2).values.map(v => (v * 100).toInt))
+
+    assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerA_rating_5", ("1", "2", "3")), transitionProb: _*), factors(3))
+    assertEquals(Factor(Var("playerC_rating_5", ("1", "2", "3")), priorProb: _*), factors(4))
+
+    val emmissionFactorAC = Factor(Var("playerA_rating_5", ("1", "2", "3")), Var("playerC_rating_5", ("1", "2", "3")), Var("score_playerA_playerC_5", ("w", "l")),
+      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+    assertEquals(emmissionFactorAC.variables, factors(5).variables)
+    assertEquals(emmissionFactorAC.values, factors(5).values.map(v => (v * 100).toInt))
+
+    assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), Var("playerB_rating_5", ("1", "2", "3")), transitionProb: _*), factors(6))
+
+    val emmissionFactorBC = Factor(Var("playerB_rating_5", ("1", "2", "3")), Var("playerC_rating_5", ("1", "2", "3")), Var("score_playerB_playerC_5", ("w", "l")),
+      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+    assertEquals(emmissionFactorAC.variables, factors(5).variables)
+    assertEquals(emmissionFactorAC.values, factors(7).values.map(v => (v * 100).toInt))
+  }
+
   /**Tests for getPlayerIds.*/
   @Test def getPlayerIds_no_players {
     assertEquals(Nil, dbnTennis.getPlayerIds())
@@ -209,9 +260,4 @@ class GenericDbnTennisTest {
     assertEquals(List("playerA", "playerB", "playerC"), dbnTennis.getPlayerIds())
   }
 
-  private def assertRating(expected: Seq[Double], actual: Seq[Double], delta: Double) {
-    for ((expected, actual) <- expected.zip(actual)) {
-      assertEquals(expected, actual, delta)
-    }
-  }
 }

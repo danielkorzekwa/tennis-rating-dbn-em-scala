@@ -44,26 +44,6 @@ class GenericDbnTennis(priorProb: List[Double], emissionProb: List[Double], tran
   private val results: ListBuffer[Result] = ListBuffer()
   private val factors: ListBuffer[Factor] = ListBuffer()
 
-  /**@see DbnTennis.*/
-  def getRatingPriorProbabilities(): Seq[Seq[Double]] = {
-
-    factors.isEmpty match {
-      case true => Nil
-      case false => {
-        val fullJoin = factors.head.product(factors.tail: _*)
-
-        val priorValuesNum = priorProb.size
-        val priorFactors = fullJoin.variables.filter(v => v.values.size == priorValuesNum).map { v =>
-          fullJoin.marginal(v.name).normalize()
-        }
-
-        val ratingPriorProbs = priorFactors.map(f => f.values)
-        ratingPriorProbs
-      }
-    }
-
-  }
-
   /**
    * Add tennis result between two tennis players to dynamic bayesian network.
    * @param result
