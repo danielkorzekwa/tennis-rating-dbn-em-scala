@@ -39,7 +39,7 @@ import Factor._
  * ...
  *
  */
-class GenericDbnTennis(priorProb: List[Double], emissionProb: List[Double], transitionProb: List[Double]) extends DbnTennis {
+class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]) extends DbnTennis {
 
   private val results: ListBuffer[Result] = ListBuffer()
   private val factors: ListBuffer[Factor] = ListBuffer()

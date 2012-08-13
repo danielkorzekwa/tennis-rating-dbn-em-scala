@@ -43,6 +43,18 @@ class GenericDbnTennisTest {
     dbnTennis.addResult(Result("playerC", "playerD", false, 4))
   }
 
+  @Test(expected = classOf[IllegalArgumentException]) def addResult_AB_BA_AB {
+    dbnTennis.addResult(Result("playerA", "playerB", true, 5))
+    dbnTennis.addResult(Result("playerB", "playerA", false, 5))
+    dbnTennis.addResult(Result("playerA", "playerB", false, 5))
+  }
+
+  @Test def addResult_AB_BA {
+    dbnTennis.addResult(Result("playerA", "playerB", true, 5))
+    dbnTennis.addResult(Result("playerB", "playerA", false, 5))
+    assertEquals(2, dbnTennis.getResults().size)
+  }
+
   @Test def addResult_single {
     dbnTennis.addResult(Result("playerA", "playerB", true, 4))
     assertEquals(1, dbnTennis.getResults().size)

@@ -4,6 +4,7 @@ import org.junit._
 import Assert._
 import EMTrain._
 import dbn.DbnTennis._
+import dk.tennis.em.util.VectorAssert._
 
 class GenericEMTrainTest {
 
@@ -26,14 +27,13 @@ class GenericEMTrainTest {
 
   val parameters = Params(priorProb, emissionProb, transitionProb)
 
-  val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", true, 2) :: Nil
-
   /**
    * Tests for train().
    */
 
   @Test @Ignore def train {
 
+    val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", true, 2) :: Nil
     val iterNum = 5;
     def progress(currentIter: Int, logLikelihood: Double) = println("Log likelihood for iteration %d = %f".format(currentIter, logLikelihood))
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
@@ -46,20 +46,100 @@ class GenericEMTrainTest {
   /**
    * Tests for expectationStep().
    */
-  @Test @Ignore def expectationStep {
+  @Test def expectationStep_no_results {
+    val results = Nil
+    val sufficientStats = emTrain.expectationStep(parameters, results)
+
+    assertEquals(0, sufficientStats.priorStatsNum)
+    assertEquals(0, sufficientStats.emissionStatsNum)
+    assertEquals(0, sufficientStats.transitionStatsNum)
+
+    vectorAssert(Nil, sufficientStats.priorStats, 0.0001)
+    vectorAssert(Nil, sufficientStats.emissionStats, 0.0001)
+    vectorAssert(Nil, sufficientStats.transitionStats, 0.0001)
+
+  }
+
+  @Test def expectationStep_single_result {
+    val results = Result("P1", "P2", true, 1) :: Nil
+    val sufficientStats = emTrain.expectationStep(parameters, results)
+
+    assertEquals(2, sufficientStats.priorStatsNum)
+    assertEquals(1, sufficientStats.emissionStatsNum)
+    assertEquals(0, sufficientStats.transitionStatsNum)
+
+    vectorAssert(List(0.4000, 1.0000, 0.6000), sufficientStats.priorStats, 0.0001)
+    vectorAssert(List(0.0400, 0.0000, 0.0667, 0.0000, 0.0300, 0.0000, 0.1333, 0.0000, 0.2500, 0.0000, 0.1200, 0.0000, 0.0900, 0.0000, 0.1800, 0.0000, 0.0900, 0.0000), sufficientStats.emissionStats, 0.0001)
+    vectorAssert(Nil, sufficientStats.transitionStats, 0.0001)
+
+  }
+
+  @Test def expectationStep {
+    val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", true, 2) :: Nil
     val sufficientStats = emTrain.expectationStep(parameters, results)
 
     assertEquals(3, sufficientStats.priorStatsNum)
-    //assertEquals(9, sufficientStats.emissionStatsNum)
-    // assertEquals(6, sufficientStats.transitionStatsNum)
+    assertEquals(2, sufficientStats.emissionStatsNum)
+    assertEquals(1, sufficientStats.transitionStatsNum)
 
-    assertEquals(0.58674, sufficientStats.priorStats(0))
-    assertEquals(1.51496, sufficientStats.priorStats(1))
-    assertEquals(0.89831, sufficientStats.priorStats(2))
+    vectorAssert(List(0.5888, 1.5151, 0.8961), sufficientStats.priorStats, 0.0001)
+    vectorAssert(List(0.0835, 0.0000, 0.1608, 0.0000, 0.0781, 0.0000, 0.2316, 0.0000, 0.5153, 0.0000, 0.2704, 0.0000, 0.1389, 0.0000, 0.3362, 0.0000, 0.1854, 0.0000), sufficientStats.emissionStats, 0.0001)
+    vectorAssert(List(0.1823, 0.0027, 0.0033, 0.0035, 0.5065, 0.0062, 0.0017, 0.0050, 0.2888), sufficientStats.transitionStats, 0.0001)
+
+  }
+
+  @Test def expectationStep_all_results_for_two_time_slices {
+    val results = Result("P1", "P2", true, 1) :: Result("P1", "P3", true, 1) :: Result("P2", "P3", false, 1) ::
+      Result("P1", "P2", true, 2) :: Result("P1", "P3", false, 2) :: Result("P2", "P3", false, 2) ::
+      Nil
+
+    val sufficientStats = emTrain.expectationStep(parameters, results)
+
+    assertEquals(3, sufficientStats.priorStatsNum)
+    assertEquals(6, sufficientStats.emissionStatsNum)
+    assertEquals(3, sufficientStats.transitionStatsNum)
+
+    vectorAssert(List(0.6590, 1.4218, 0.9192), sufficientStats.priorStats, 0.0001)
+    vectorAssert(List(0.1119, 0.1117, 0.1112, 0.5474, 0.0459, 0.4028, 0.5450, 0.1114, 0.6651, 0.6645, 0.3051, 0.5459, 0.4011, 0.0463, 0.5469, 0.3039, 0.2677, 0.2661), sufficientStats.emissionStats, 0.0001)
+    vectorAssert(List(0.6480, 0.0056, 0.0054, 0.0141, 1.3931, 0.0146, 0.0081, 0.0176, 0.8936), sufficientStats.transitionStats, 0.0001)
 
   }
 
   /**
    * Tests for maximizationStep().
    */
+  @Test def maximizationStep_no_stats {
+    val sufficientStats = SufficientStats(Nil, 0, Nil, 0, Nil, 0)
+    val params = emTrain.maximizationStep(sufficientStats)
+
+    vectorAssert(Nil, params.priorProb, 0.0001)
+    vectorAssert(Nil, params.emissionProb, 0.0001)
+    vectorAssert(Nil, params.transitionProb, 0.0001)
+  }
+
+  @Test def maximizationStep {
+    val priorStats = List(0.5888, 1.5151, 0.8961)
+    val emissionStats = List(0.0835, 0.0000, 0.1608, 0.0000, 0.0781, 0.0000, 0.2316, 0.0000, 0.5153, 0.0000, 0.2704, 0.0000, 0.1389, 0.0000, 0.3362, 0.0000, 0.1854, 0.0000)
+    val transitionStats = List(0.1823, 0.0027, 0.0033, 0.0035, 0.5065, 0.0062, 0.0017, 0.0050, 0.2888)
+
+    val sufficientStats = SufficientStats(priorStats, 3, emissionStats, 2, transitionStats, 1)
+    val params = emTrain.maximizationStep(sufficientStats)
+
+    vectorAssert(List(0.1963, 0.5050, 0.2987), params.priorProb, 0.0001)
+    vectorAssert(List(0.0418, 0.0000, 0.0804, 0.0000, 0.0391, 0.0000, 0.1158, 0.0000, 0.2577, 0.0000, 0.1352, 0.0000, 0.0695, 0.0000, 0.1681, 0.0000, 0.0927, 0.0000), params.emissionProb, 0.0001)
+    vectorAssert(List(0.1823, 0.0027, 0.0033, 0.0035, 0.5065, 0.0062, 0.0017, 0.0050, 0.2888), params.transitionProb, 0.0001)
+  }
+
+  @Test def maximizationStep_all_results_for_two_time_slices {
+    val priorStats = List(0.6590, 1.4218, 0.9192)
+    val emissionStats = List(0.1119, 0.1117, 0.1112, 0.5474, 0.0459, 0.4028, 0.5450, 0.1114, 0.6651, 0.6645, 0.3051, 0.5459, 0.4011, 0.0463, 0.5469, 0.3039, 0.2677, 0.2661)
+    val transitionStats = List(0.6480, 0.0056, 0.0054, 0.0141, 1.3931, 0.0146, 0.0081, 0.0176, 0.8936)
+
+    val sufficientStats = SufficientStats(priorStats, 3, emissionStats, 2, transitionStats, 1)
+    val params = emTrain.maximizationStep(sufficientStats)
+
+    vectorAssert(List(0.2197, 0.4739, 0.3064), params.priorProb, 0.0001)
+    vectorAssert(List(0.0560, 0.0559, 0.0556, 0.2737, 0.0230, 0.2014, 0.2725, 0.0557, 0.3326, 0.3323, 0.1526, 0.2730, 0.2006, 0.0232, 0.2735, 0.1520, 0.1339, 0.1331), params.emissionProb, 0.0001)
+    vectorAssert(List(0.6480, 0.0056, 0.0054, 0.0141, 1.3931, 0.0146, 0.0081, 0.0176, 0.8936), params.transitionProb, 0.0001)
+  }
 }

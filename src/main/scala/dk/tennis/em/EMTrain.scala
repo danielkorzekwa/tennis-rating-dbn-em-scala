@@ -16,7 +16,7 @@ object EMTrain {
   /**
    *  Refer to DbnTennis on how prior,emission and transition probabilities are represented.
    */
-  case class Params(priorProb: List[Double], emissionProb: List[Double], transitionProb: List[Double])
+  case class Params(priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double])
 
   /**
    * @param priorStats
