@@ -95,7 +95,7 @@ class GenericDbnTennisTest {
     val emmissionFactor = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
       11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
     assertEquals(emmissionFactor.variables, factors(2).variables)
-    assertEquals(emmissionFactor.values, factors(2).values.map(v => (v * 100).toInt))
+    assertEquals(emmissionFactor.values, factors(2).values.map(v => (v * 100).toInt).toList)
 
   }
 

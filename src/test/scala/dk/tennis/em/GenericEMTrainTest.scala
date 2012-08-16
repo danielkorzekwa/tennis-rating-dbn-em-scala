@@ -31,16 +31,39 @@ class GenericEMTrainTest {
    * Tests for train().
    */
 
-  @Test @Ignore def train {
+  @Test def train {
 
-    val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", true, 2) :: Nil
-    val iterNum = 5;
+    val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", false, 1) :: Nil
+    val iterNum = 1;
     def progress(currentIter: Int, logLikelihood: Double) = println("Log likelihood for iteration %d = %f".format(currentIter, logLikelihood))
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
-    assertEquals(9, trainedParams.emissionProb.size)
+    assertEquals(18, trainedParams.emissionProb.size)
+    assertEquals(0, trainedParams.transitionProb.size)
+
+    //println(trainedParams.priorProb.map(e => e.formatted("%.4f")).toList)
+    vectorAssert(List(0.2043, 0.4952, 0.3006), trainedParams.priorProb, 0.0001)
+    vectorAssert(List(0.5000, 0.5000, 0.2739, 0.7261, 0.1684, 0.8316, 0.7261, 0.2739, 0.5000, 0.5000, 0.3493, 0.6507, 0.8316, 0.1684, 0.6507, 0.3493, 0.5000, 0.5000), trainedParams.emissionProb, 0.0001)
+    vectorAssert(Nil, trainedParams.transitionProb, 0.0001)
+  }
+
+  @Test def train_all_results_for_two_time_slices {
+
+    val results = Result("P1", "P2", true, 1) :: Result("P1", "P3", true, 1) :: Result("P2", "P3", false, 1) ::
+      Result("P1", "P2", true, 2) :: Result("P1", "P3", false, 2) :: Result("P2", "P3", false, 2) ::
+      Nil
+    val iterNum = 1;
+    def progress(currentIter: Int, logLikelihood: Double) = println("Log likelihood for iteration %d = %f".format(currentIter, logLikelihood))
+    val trainedParams = emTrain.train(parameters, results, iterNum, progress)
+
+    assertEquals(3, trainedParams.priorProb.size)
+    assertEquals(18, trainedParams.emissionProb.size)
     assertEquals(9, trainedParams.transitionProb.size)
+
+    vectorAssert(List(0.21967, 0.47392, 0.30641), trainedParams.priorProb, 0.0001)
+    vectorAssert(List(0.5006, 0.4994, 0.1688, 0.8312, 0.1023, 0.8977, 0.8303, 0.1697, 0.5002, 0.4998, 0.3585, 0.6415, 0.8965, 0.1035, 0.6429, 0.3571, 0.5015, 0.4985), trainedParams.emissionProb, 0.0001)
+    vectorAssert(List(0.9833, 0.0085, 0.0081, 0.0099, 0.9798, 0.0103, 0.0088, 0.0191, 0.9721), trainedParams.transitionProb, 0.0001)
   }
 
   /**
@@ -98,7 +121,7 @@ class GenericEMTrainTest {
     assertEquals(3, sufficientStats.priorStatsNum)
     assertEquals(6, sufficientStats.emissionStatsNum)
     assertEquals(3, sufficientStats.transitionStatsNum)
-
+    println(sufficientStats.priorStats.toList)
     vectorAssert(List(0.6590, 1.4218, 0.9192), sufficientStats.priorStats, 0.0001)
     vectorAssert(List(0.1119, 0.1117, 0.1112, 0.5474, 0.0459, 0.4028, 0.5450, 0.1114, 0.6651, 0.6645, 0.3051, 0.5459, 0.4011, 0.0463, 0.5469, 0.3039, 0.2677, 0.2661), sufficientStats.emissionStats, 0.0001)
     vectorAssert(List(0.6480, 0.0056, 0.0054, 0.0141, 1.3931, 0.0146, 0.0081, 0.0176, 0.8936), sufficientStats.transitionStats, 0.0001)

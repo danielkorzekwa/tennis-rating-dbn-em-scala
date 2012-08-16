@@ -163,4 +163,15 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
     val normValues = values.map(v => v / normConst)
     this.copy(values = normValues)
   }
+
+  /**Normalize all factor values so they form a conditional probability table.*/
+  def toCPD(): Factor = {
+    val sliceSize = variables.last.values.size
+
+    val normValues = values.grouped(sliceSize).map { slice =>
+      slice.map(elem => elem / slice.sum)
+    }.flatten.toSeq
+
+    this.copy(values = normValues)
+  }
 }

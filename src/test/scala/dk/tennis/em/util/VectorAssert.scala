@@ -6,9 +6,11 @@ import Assert._
 object VectorAssert {
 
   def vectorAssert(expected: Seq[Double], actual: Seq[Double], delta: Double) {
-    assertEquals(expected.size, actual.size)
+    assertEquals("Wrong size of vector.".format(expected.size, actual.size), expected.size, actual.size)
+    var i = 0
     for ((expected, actual) <- expected.zip(actual)) {
-      assertEquals(expected, actual, delta)
+      assertEquals("Element: " + i, expected, actual, delta)
+      i = i + 1
     }
   }
 }

@@ -3,6 +3,7 @@ package dk.tennis.em.bn
 import org.junit._
 import Assert._
 import Factor._
+import dk.tennis.em.util.VectorAssert._
 
 class FactorTest {
 
@@ -226,7 +227,7 @@ class FactorTest {
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore)
 
-    val marginalFactor = fullJoinFactor.marginal("R1", "R2").normalize
+    val marginalFactor = fullJoinFactor.marginal("R1", "R2")
 
     assertEquals(Var("R1", ("1", "2", "3")) :: Var("R2", ("1", "2", "3")) :: Nil, marginalFactor.variables)
     assertEquals(9, marginalFactor.values.size)
@@ -240,7 +241,7 @@ class FactorTest {
     assertEquals(0.166, marginalFactor.values(7), 0.001)
     assertEquals(0.166, marginalFactor.values(8), 0.001)
 
-    val singleMarginal = marginalFactor.marginal("R1").normalize
+    val singleMarginal = marginalFactor.marginal("R1")
     assertEquals(List(Var("R1", ("1", "2", "3"))), singleMarginal.variables)
     assertEquals(3, singleMarginal.values.size)
     assertEquals(0.1666, singleMarginal.values(0), 0.001)
@@ -254,19 +255,10 @@ class FactorTest {
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore).evidence(("Score", "W"))
 
-    val marginalFactor = fullJoinFactor.marginal("R1", "R2").normalize
+    val marginalFactor = fullJoinFactor.marginal("R1", "R2")
 
     assertEquals(Var("R1", ("1", "2", "3")) :: Var("R2", ("1", "2", "3")) :: Nil, marginalFactor.variables)
-    assertEquals(9, marginalFactor.values.size)
-    assertEquals(0.111, marginalFactor.values(0), 0.001)
-    assertEquals(0.074, marginalFactor.values(1), 0.001)
-    assertEquals(0.055, marginalFactor.values(2), 0.001)
-    assertEquals(0.148, marginalFactor.values(3), 0.001)
-    assertEquals(0.111, marginalFactor.values(4), 0.001)
-    assertEquals(0.088, marginalFactor.values(5), 0.001)
-    assertEquals(0.166, marginalFactor.values(6), 0.001)
-    assertEquals(0.133, marginalFactor.values(7), 0.001)
-    assertEquals(0.111, marginalFactor.values(8), 0.001)
+    vectorAssert(List(0.0556, 0.0370, 0.0278, 0.0741, 0.0556, 0.0444, 0.0833, 0.0667, 0.0556), marginalFactor.values, 0.0001)
 
     val singleMarginal = marginalFactor.marginal("R1").normalize
     assertEquals(List(Var("R1", ("1", "2", "3"))), singleMarginal.variables)
@@ -310,5 +302,41 @@ class FactorTest {
     assertEquals(2d / 6, normFactor.values(1), 0.001)
     assertEquals(3d / 6, normFactor.values(2), 0.001)
 
+  }
+
+  @Test def normalize_two_variables {
+    val factor = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), 1, 2, 3, 4, 5, 6, 7, 8, 9)
+    val normFactor = factor.normalize()
+    vectorAssert(List(0.0222, 0.0444, 0.0667, 0.0889, 0.1111, 0.1333, 0.1556, 0.1778, 0.2000), normFactor.values, 0.0001)
+  }
+
+  /**Tests for toCPD() function.*/
+
+  @Test def toCPD_even_probababilities {
+    val factor = Factor(Var("R1", ("1", "2", "3")), 1d / 5, 1d / 5, 1d / 5)
+    val normFactor = factor.toCPD()
+
+    assertEquals(3, normFactor.values.size)
+    assertEquals(1d / 3, normFactor.values(0), 0.001)
+    assertEquals(1d / 3, normFactor.values(1), 0.001)
+    assertEquals(1d / 3, normFactor.values(2), 0.001)
+
+  }
+
+  @Test def toCPD_not_even_probabilities {
+    val factor = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 2d / 3, 3d / 3)
+    val normFactor = factor.toCPD()
+
+    assertEquals(3, normFactor.values.size)
+    assertEquals(1d / 6, normFactor.values(0), 0.001)
+    assertEquals(2d / 6, normFactor.values(1), 0.001)
+    assertEquals(3d / 6, normFactor.values(2), 0.001)
+
+  }
+
+  @Test def toCPD_two_variables {
+    val factor = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), 1, 2, 3, 4, 5, 6, 7, 8, 9)
+    val normFactor = factor.toCPD()
+    vectorAssert(List(1d / 6, 2d / 6, 3d / 6, 4d / 15, 5d / 15, 6d / 15, 7d / 24, 8d / 24, 9d / 24), normFactor.values, 0.0001)
   }
 }
