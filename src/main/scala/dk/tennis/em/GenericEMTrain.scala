@@ -64,20 +64,23 @@ class GenericEMTrain extends EMTrain {
 
   /** @see EMTrain */
   def maximizationStep(sufficientStats: SufficientStats): Params = {
-    val priorProbs = toCPD(sufficientStats.priorStats,3)
-    val emissionProbs = toCPD(sufficientStats.emissionStats,2)
-    val transitionProbs = toCPD(sufficientStats.transitionStats,3)
+    val priorProbs = toCPD(sufficientStats.priorStats, sufficientStats.priorStats.size)
+    val emissionProbs = toCPD(sufficientStats.emissionStats, 2) //2 - number of tennis match outcomes (WIN,LOSE))
+    val transitionProbs = toCPD(sufficientStats.transitionStats, sufficientStats.priorStats.size)
     Params(priorProbs, emissionProbs, transitionProbs)
   }
 
   /**Normalize all factor values so they form a conditional probability table.*/
-  def toCPD(values:Seq[Double],sliceSize:Int): Seq[Double] = {
+  def toCPD(values: Seq[Double], sliceSize: Int): Seq[Double] = {
 
-    val normValues = values.grouped(sliceSize).map { slice =>
-      slice.map(elem => elem / slice.sum)
-    }.flatten.toSeq
+    val normValues = values.isEmpty match {
+      case true => Nil
+      case false => values.grouped(sliceSize).flatMap { slice =>
+        slice.map(elem => elem / slice.sum)
+      }
+    }
 
-   normValues
+    normValues.toSeq
   }
-  
+
 }
