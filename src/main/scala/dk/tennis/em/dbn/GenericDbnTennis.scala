@@ -121,7 +121,7 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
       emissionProb)
 
     implicit def booleanToString(value: Boolean): String = if (value) "w" else "l"
-    val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName, booleanToString(result.playerAWinner))).normalize()
+    val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName, booleanToString(result.playerAWinner)))
 
     factors += emissionFactorWithEvidence
   }

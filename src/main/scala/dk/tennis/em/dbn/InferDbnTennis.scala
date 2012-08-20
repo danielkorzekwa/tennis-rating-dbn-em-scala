@@ -9,21 +9,18 @@ import dk.tennis.em.bn.Factor
 trait InferDbnTennis {
 
   /**
-   * Returns rating prior probabilities for all players.
+   * Returns normalised rating prior probabilities for all players.
    *
-   * @param factors List of factors (prior, emission, transition) representing dbn bayesian network.
    *
    * @return Seq[player rating prior probabilities]
    * Example rating prior probabilities for two players: List(0.2,0.5,0.3) :: List(0.1,0.2,0.7) :: Nil.
    * Three rating values: 0,1,2 with probabilities 0.2 0.5 0.3 respectively for the first player.
    *
    */
-  def getRatingPriorProbabilities(factors: Seq[Factor]): Seq[Seq[Double]]
+  def getRatingPriorProbabilities(): Seq[Seq[Double]]
 
   /**
-   * Returns score emission probabilities for all scores.
-   *
-   * @param factors List of factors (prior, emission, transition) representing dbn bayesian network.
+   * Returns normalised score emission probabilities for all scores.
    *
    * @return Seq[score emission probabilities]
    *
@@ -46,12 +43,11 @@ trait InferDbnTennis {
    * 1,0,l - 1/3
    * ...
    */
-  def getScoreEmissionProbabilities(factors: Seq[Factor]): Seq[Seq[Double]]
+  def getScoreEmissionProbabilities(): Seq[Seq[Double]]
 
   /**
-   * Returns transition probabilities between player rating probabilities in times t and t + 1.
+   * Returns normalised transition probabilities between player rating probabilities in times t and t + 1.
    *
-   * @param factors List of factors (prior, emission, transition) representing dbn bayesian network.
    *
    * @return Seq[score emission probabilities]
    *
@@ -65,6 +61,9 @@ trait InferDbnTennis {
    * 1,2 - 0.02
    * ...
    */
-  def getRatingTransitionProbabilities(factors: Seq[Factor]): Seq[Seq[Double]]
+  def getRatingTransitionProbabilities(): Seq[Seq[Double]]
+  
+  /**Calculates log likelihood of a dbn network.*/
+  def logLikelihood():Double
 
 }

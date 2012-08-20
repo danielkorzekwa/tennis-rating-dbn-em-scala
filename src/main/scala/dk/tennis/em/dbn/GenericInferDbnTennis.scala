@@ -1,10 +1,15 @@
 package dk.tennis.em.dbn
 import dk.tennis.em.bn.Factor
+import scala.Math._
 
-object GenericInferDbnTennis extends InferDbnTennis {
+case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
+
+  require(!factors.isEmpty, "List of factors is empty")
+
+  val fullJoin = factors.head.product(factors.tail: _*)
 
   /**@see InferDbnTennis.*/
-  def getRatingPriorProbabilities(factors: Seq[Factor]): Seq[Seq[Double]] = {
+  def getRatingPriorProbabilities(): Seq[Seq[Double]] = {
 
     val priorFactors = marginalizeFactors(factors, 1)
 
@@ -14,7 +19,7 @@ object GenericInferDbnTennis extends InferDbnTennis {
   }
 
   /**@see InferDbnTennis.*/
-  def getScoreEmissionProbabilities(factors: Seq[Factor]): Seq[Seq[Double]] = {
+  def getScoreEmissionProbabilities(): Seq[Seq[Double]] = {
 
     val emissionFactorsWithEvidence = marginalizeFactors(factors, 3)
 
@@ -23,7 +28,7 @@ object GenericInferDbnTennis extends InferDbnTennis {
   }
 
   /**@see InferDbnTennis.*/
-  def getRatingTransitionProbabilities(factors: Seq[Factor]): Seq[Seq[Double]] = {
+  def getRatingTransitionProbabilities(): Seq[Seq[Double]] = {
 
     val transitionFactors = marginalizeFactors(factors, 2)
 
@@ -32,21 +37,18 @@ object GenericInferDbnTennis extends InferDbnTennis {
 
   }
 
+  /**@see InferDbnTennis.*/
+  def logLikelihood(): Double = log(fullJoin.values.sum)
+
   /**Find all factors with a given number of variables and marginalize them from a full join distribution.*/
   private def marginalizeFactors(factors: Seq[Factor], factorVarNum: Int): Seq[Factor] = {
-    factors.isEmpty match {
-      case true => Nil
-      case false => {
 
-        val marginals = factors.filter(f => f.variables.size == factorVarNum)
+    val filteredFactors = factors.filter(f => f.variables.size == factorVarNum)
 
-        val fullJoin = factors.head.product(factors.tail: _*)
+    val marginalsWithEvidence = filteredFactors.map(f => fullJoin.marginal(f.variables.map(v => v.name): _*).normalize())
 
-        val marginalsWithEvidence = marginals.map(f => fullJoin.marginal(f.variables.map(v => v.name): _*).normalize())
+    marginalsWithEvidence
 
-        marginalsWithEvidence
-      }
-    }
   }
 
 }

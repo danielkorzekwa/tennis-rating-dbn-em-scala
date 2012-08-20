@@ -19,17 +19,19 @@ object EMTrain {
   case class Params(priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double])
 
   /**
-   * @param priorStats
+   * @param priorStats Aggregated and normalised statistics across all prior rating variables.
    * @param priorStatsNum Number of cases (prior rating variables) used for aggregating prior statistics.
    * @param emissionStats
    * @param emissionStatsNum
    * @param transitionStats
    * @param transitionStatsNum
+   * @param loglikelihood Log likelihood for the bayesian network, which is used for calculating sufficient statistics.
+   * 
    *
    * Refer to DbnTennis on how prior,emission and transition stats are represented.
    */
   case class SufficientStats(priorStats: Seq[Double], priorStatsNum: Int, emissionStats: Seq[Double], emissionStatsNum: Int,
-    transitionStats: Seq[Double], transitionStatsNum: Int)
+    transitionStats: Seq[Double], transitionStatsNum: Int, loglikelihood:Double)
 }
 
 trait EMTrain {

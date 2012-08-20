@@ -33,12 +33,18 @@ class GenericEMTrain extends EMTrain {
   def train(parameters: Params, results: List[Result], iterNum: Int, progress: (Int, Double) => Unit): Params = {
 
     @tailrec
-    def trainIteration(parameters: Params, iter: Int): Params = {
+    def trainIteration(parameters: Params, iter: Int,prevLlh:Double=Double.MinValue): Params = {
 
       val sufficientStats = expectationStep(parameters, results)
       val newParameters = maximizationStep(sufficientStats)
-      progress(iter, 0d)
-      if (iter < iterNum) trainIteration(newParameters, iter + 1) else newParameters
+      val llh =  sufficientStats.loglikelihood
+
+      progress(iter,llh)
+      
+      /**For a better stopping criteria, please look here: em_converged.m (BNT tool) or Numerical Recipes in C p423
+       * (http://astronu.jinr.ru/wiki/upload/d/d6/NumericalRecipesinC.pdf)
+       */
+      if (iter < iterNum && llh> prevLlh) trainIteration(newParameters, iter + 1,llh) else newParameters
     }
 
     val newParameters = trainIteration(parameters, 1)
@@ -51,15 +57,20 @@ class GenericEMTrain extends EMTrain {
     val dbnTennis = new GenericDbnTennis(parameters.priorProb, parameters.emissionProb, parameters.transitionProb)
     results.foreach(r => dbnTennis.addResult(r))
 
-    val priorRatingProbs = GenericInferDbnTennis.getRatingPriorProbabilities(dbnTennis.getFactors())
-    val scoreEmissionProbs = GenericInferDbnTennis.getScoreEmissionProbabilities(dbnTennis.getFactors())
-    val ratingTransitionProbs = GenericInferDbnTennis.getRatingTransitionProbabilities(dbnTennis.getFactors())
+    val inferDbnTennis = GenericInferDbnTennis(dbnTennis.getFactors())
+
+    val priorRatingProbs = inferDbnTennis.getRatingPriorProbabilities()
+    val scoreEmissionProbs = inferDbnTennis.getScoreEmissionProbabilities()
+    val ratingTransitionProbs = inferDbnTennis.getRatingTransitionProbabilities()
 
     val priorStats = sum(priorRatingProbs)
     val emissionStats = sum(scoreEmissionProbs)
     val transitionStats = sum(ratingTransitionProbs)
 
-    SufficientStats(priorStats, priorRatingProbs.size, emissionStats, scoreEmissionProbs.size, transitionStats, ratingTransitionProbs.size)
+    SufficientStats(priorStats, priorRatingProbs.size, 
+    		emissionStats, scoreEmissionProbs.size, 
+    		transitionStats, ratingTransitionProbs.size, 
+    		inferDbnTennis.logLikelihood)
   }
 
   /** @see EMTrain */

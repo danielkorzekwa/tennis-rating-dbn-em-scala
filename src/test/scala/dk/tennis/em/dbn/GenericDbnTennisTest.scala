@@ -6,6 +6,7 @@ import dk.tennis.em.EMTrain._
 import DbnTennis._
 import dk.tennis.em.bn.Factor
 import Factor._
+import dk.tennis.em.util.VectorAssert._
 
 class GenericDbnTennisTest {
 
@@ -23,6 +24,8 @@ class GenericDbnTennisTest {
     0.5, 0.5)
 
   val transitionProb = List(0.98, 0.01, 0.01, 0.01, 0.98, 0.01, 0.01, 0.02, 0.97)
+
+  val emissionProbForPlayerAWon = List(0.5000, 0.0000, 0.3333, 0.0000, 0.2500, 0.0000, 0.6667, 0.0000, 0.5000, 0.0000, 0.4000, 0.0000, 0.7500, 0.0000, 0.6000, 0.0000, 0.5000, 0.0000)
 
   private val dbnTennis = new GenericDbnTennis(priorProb, emissionProb, transitionProb)
 
@@ -93,10 +96,10 @@ class GenericDbnTennisTest {
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
 
     val emmissionFactor = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
-    assertEquals(emmissionFactor.variables, factors(2).variables)
-    assertEquals(emmissionFactor.values, factors(2).values.map(v => (v * 100).toInt).toList)
+      emissionProbForPlayerAWon: _*)
 
+    assertEquals(emmissionFactor.variables, factors(2).variables)
+    vectorAssert(emmissionFactor.values, factors(2).values, 0.0001)
   }
 
   @Test def addToFactors_two_results_for_player_A_in_time_slice_4 {
@@ -110,16 +113,18 @@ class GenericDbnTennisTest {
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
 
     val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
+
     assertEquals(emmissionFactorAB.variables, factors(2).variables)
-    assertEquals(emmissionFactorAB.values, factors(2).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAB.values, factors(2).values, 0.0001)
 
     assertEquals(Factor(Var("playerC_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(3))
 
     val emmissionFactorAC = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerC_rating_4", ("1", "2", "3")), Var("score_playerA_playerC_4", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
+
     assertEquals(emmissionFactorAC.variables, factors(4).variables)
-    assertEquals(emmissionFactorAC.values, factors(4).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAC.values, factors(4).values, 0.0001)
 
   }
 
@@ -142,17 +147,17 @@ class GenericDbnTennisTest {
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
 
     val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAB.variables, factors(2).variables)
-    assertEquals(emmissionFactorAB.values, factors(2).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAB.values, factors(2).values, 0.0001)
 
     assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerA_rating_5", ("1", "2", "3")), transitionProb: _*), factors(3))
     assertEquals(Factor(Var("playerC_rating_5", ("1", "2", "3")), priorProb: _*), factors(4))
 
     val emmissionFactorAC = Factor(Var("playerA_rating_5", ("1", "2", "3")), Var("playerC_rating_5", ("1", "2", "3")), Var("score_playerA_playerC_5", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAC.variables, factors(5).variables)
-    assertEquals(emmissionFactorAC.values, factors(5).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAC.values, factors(5).values, 0.0001)
   }
 
   @Test def addToFactors_AB_in_time_4_AC_in_time_6 {
@@ -166,18 +171,18 @@ class GenericDbnTennisTest {
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
 
     val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAB.variables, factors(2).variables)
-    assertEquals(emmissionFactorAB.values, factors(2).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAB.values, factors(2).values, 0.0001)
 
     assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerA_rating_5", ("1", "2", "3")), transitionProb: _*), factors(3))
     assertEquals(Factor(Var("playerA_rating_5", ("1", "2", "3")), Var("playerA_rating_6", ("1", "2", "3")), transitionProb: _*), factors(4))
     assertEquals(Factor(Var("playerC_rating_6", ("1", "2", "3")), priorProb: _*), factors(5))
 
     val emmissionFactorAC = Factor(Var("playerA_rating_6", ("1", "2", "3")), Var("playerC_rating_6", ("1", "2", "3")), Var("score_playerA_playerC_6", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAC.variables, factors(6).variables)
-    assertEquals(emmissionFactorAC.values, factors(6).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAC.values, factors(6).values, 0.0001)
   }
 
   @Test def addToFactors_AB_in_time_4_BC_in_time_5 {
@@ -191,17 +196,17 @@ class GenericDbnTennisTest {
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
 
     val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAB.variables, factors(2).variables)
-    assertEquals(emmissionFactorAB.values, factors(2).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAB.values, factors(2).values, 0.0001)
 
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), Var("playerB_rating_5", ("1", "2", "3")), transitionProb: _*), factors(3))
     assertEquals(Factor(Var("playerC_rating_5", ("1", "2", "3")), priorProb: _*), factors(4))
 
     val emmissionFactorAC = Factor(Var("playerB_rating_5", ("1", "2", "3")), Var("playerC_rating_5", ("1", "2", "3")), Var("score_playerB_playerC_5", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAC.variables, factors(5).variables)
-    assertEquals(emmissionFactorAC.values, factors(5).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAC.values, factors(5).values, 0.0001)
   }
 
   @Test def addToFactors_AB_in_time_4_BC_in_time_6 {
@@ -215,18 +220,18 @@ class GenericDbnTennisTest {
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
 
     val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAB.variables, factors(2).variables)
-    assertEquals(emmissionFactorAB.values, factors(2).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAB.values, factors(2).values, 0.0001)
 
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), Var("playerB_rating_5", ("1", "2", "3")), transitionProb: _*), factors(3))
     assertEquals(Factor(Var("playerB_rating_5", ("1", "2", "3")), Var("playerB_rating_6", ("1", "2", "3")), transitionProb: _*), factors(4))
     assertEquals(Factor(Var("playerC_rating_6", ("1", "2", "3")), priorProb: _*), factors(5))
 
     val emmissionFactorAC = Factor(Var("playerB_rating_6", ("1", "2", "3")), Var("playerC_rating_6", ("1", "2", "3")), Var("score_playerB_playerC_6", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAC.variables, factors(6).variables)
-    assertEquals(emmissionFactorAC.values, factors(6).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAC.values, factors(6).values, 0.0001)
   }
 
   @Test def addToFactors_AB_in_time_4_AC_in_time_5_BC_in_5 {
@@ -241,24 +246,24 @@ class GenericDbnTennisTest {
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
 
     val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAB.variables, factors(2).variables)
-    assertEquals(emmissionFactorAB.values, factors(2).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAB.values, factors(2).values, 0.0001)
 
     assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerA_rating_5", ("1", "2", "3")), transitionProb: _*), factors(3))
     assertEquals(Factor(Var("playerC_rating_5", ("1", "2", "3")), priorProb: _*), factors(4))
 
     val emmissionFactorAC = Factor(Var("playerA_rating_5", ("1", "2", "3")), Var("playerC_rating_5", ("1", "2", "3")), Var("score_playerA_playerC_5", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAC.variables, factors(5).variables)
-    assertEquals(emmissionFactorAC.values, factors(5).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAC.values, factors(5).values, 0.0001)
 
     assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), Var("playerB_rating_5", ("1", "2", "3")), transitionProb: _*), factors(6))
 
     val emmissionFactorBC = Factor(Var("playerB_rating_5", ("1", "2", "3")), Var("playerC_rating_5", ("1", "2", "3")), Var("score_playerB_playerC_5", ("w", "l")),
-      11, 0, 7, 0, 5, 0, 14, 0, 11, 0, 8, 0, 16, 0, 13, 0, 11, 0)
+      emissionProbForPlayerAWon: _*)
     assertEquals(emmissionFactorAC.variables, factors(5).variables)
-    assertEquals(emmissionFactorAC.values, factors(7).values.map(v => (v * 100).toInt))
+    vectorAssert(emmissionFactorAC.values, factors(7).values, 0.0001)
   }
 
   /**Tests for getPlayerIds.*/

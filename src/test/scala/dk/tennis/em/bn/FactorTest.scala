@@ -4,6 +4,7 @@ import org.junit._
 import Assert._
 import Factor._
 import dk.tennis.em.util.VectorAssert._
+import scala.Math._
 
 class FactorTest {
 
@@ -338,5 +339,26 @@ class FactorTest {
     val factor = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), 1, 2, 3, 4, 5, 6, 7, 8, 9)
     val normFactor = factor.toCPD()
     vectorAssert(List(1d / 6, 2d / 6, 3d / 6, 4d / 15, 5d / 15, 6d / 15, 7d / 24, 8d / 24, 9d / 24), normFactor.values, 0.0001)
+  }
+
+  /**Tests for log likelihood of a graphical model.*/
+  @Test def logLikelihood {
+    val factor0 = Factor(Var("Var0", ("T", "F")), 0.7, 0.3)
+    val factor1 = Factor(Var("Var0", ("T", "F")), Var("Var1", ("T", "F")), 0.8, 0.2, 0.4, 0.6)
+
+    val fullJoin = factor0.product(factor1)
+
+    val llh = log(fullJoin.values.sum)
+    assertEquals(0, llh, 0)
+  }
+
+  @Test def logLikelihood_with_evidence {
+    val factor0 = Factor(Var("Var0", ("T", "F")), 0.7, 0.3)
+    val factor1 = Factor(Var("Var0", ("T", "F")), Var("Var1", ("T", "F")), 0.8, 0.2, 0.4, 0.6).evidence(("Var1", "T"))
+
+    val fullJoin = factor0.product(factor1)
+
+    val llh = log(fullJoin.values.sum)
+    assertEquals(-0.38566, llh, 0.0001)
   }
 }
