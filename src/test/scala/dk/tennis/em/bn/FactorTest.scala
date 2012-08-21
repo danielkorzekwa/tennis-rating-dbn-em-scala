@@ -164,7 +164,7 @@ class FactorTest {
 
   @Test def marginal_single_variable_no_evidence {
     val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
-    var factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore)
 
@@ -179,7 +179,7 @@ class FactorTest {
 
   @Test def marginal_single_variable_with_single_evidence {
     val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
-    var factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore).evidence(("Score", "W"))
 
@@ -194,7 +194,7 @@ class FactorTest {
 
   @Test def marginal_single_variable_with_double_evidence {
     val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
-    var factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore).evidence(("Score", "W"), ("R2", "2"))
 
@@ -209,7 +209,7 @@ class FactorTest {
 
   @Test def marginal_on_observed_variable {
     val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
-    var factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore).evidence(("Score", "W"), ("R1", "2"))
 
@@ -224,7 +224,7 @@ class FactorTest {
 
   @Test def marginal_two_variables_with_no_evidence {
     val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 6, 2d / 6, 3d / 6)
-    var factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore)
 
@@ -252,7 +252,7 @@ class FactorTest {
 
   @Test def marginal_two_variables_with_evidence {
     val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
-    var factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore).evidence(("Score", "W"))
 
@@ -271,7 +271,7 @@ class FactorTest {
 
   @Test def marginal_three_variables_with_evidence {
     val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
-    var factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
     val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
     val fullJoinFactor = factorR1.product(factorR2).product(factorScore).evidence(("Score", "W"))
 
@@ -281,6 +281,22 @@ class FactorTest {
 
   }
 
+  @Test def marginal_from_12_factors {
+
+    val factors: Seq[Seq[Factor]] = for (i <- 1 to 4) yield {
+      val factorR1 = Factor(Var("R1_" + i, ("1", "2", "3")), 1d / 6, 2d / 6, 3d / 6)
+      val factorR2 = Factor(Var("R2_" + i, ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+      val factorScore = Factor(Var("R1_" + i, ("1", "2", "3")), Var("R2_" + i, ("1", "2", "3")), Var("Score_" + i, ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
+      List(factorR1, factorR2, factorScore)
+    }.toList
+
+    val flatFactors = factors.flatten
+    val fullJoinFactor = flatFactors.head.product(flatFactors.tail: _*)
+    val marginalFactor = fullJoinFactor.marginal("R1_3", "R2_3","Score_3")
+    
+    assertEquals(List(Var("R1_" + 3, ("1", "2", "3")), Var("R2_" + 3, ("1", "2", "3")), Var("Score_" + 3, ("W", "L"))),marginalFactor.variables)
+    vectorAssert(List(0.0278, 0.0278, 0.0185, 0.0370, 0.0139, 0.0417, 0.0741, 0.0370, 0.0556, 0.0556, 0.0444, 0.0667, 0.1250, 0.0417, 0.1000, 0.0667, 0.0833, 0.0833),marginalFactor.values,0.0001)
+  }
   /**Tests for normalize() function.*/
 
   @Test def normalize_even_probababilities {

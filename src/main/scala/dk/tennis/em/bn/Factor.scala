@@ -142,18 +142,13 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
     val marginalDimensions = marginalVariables.map(v => v._1.values.size)
 
     /**List of Tuple2 [Marginal assignment, value]*/
-    val assignmentMapping: Seq[Tuple2[Seq[Int], Double]] = values.zipWithIndex.map {
-      case (v, i) =>
-        val assignment = indexToAssignment(i, dimensions)
-        val marginalAssignment = marginalVariables.map(v => assignment(v._2))
-
-        marginalAssignment -> v
-    }
+    val assignmentMapping = computeAllAssignments(dimensions).map(a => marginalVariables.map(v => a(v._2))).zip(values)
 
     val marginalAssignmentValues = assignmentMapping.groupBy(m => m._1).mapValues(v => v.map(v => v._2).sum)
     val marginalValues = marginalAssignmentValues.toList.sortBy(v => assignmentToIndex(v._1, marginalDimensions)).map { case (a, v) => v }
 
     val marginalFactor = Factor(marginalVariables.map(v => v._1), marginalValues)
+
     marginalFactor
   }
 
