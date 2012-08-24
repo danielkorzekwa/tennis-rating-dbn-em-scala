@@ -6,6 +6,9 @@ import dk.tennis.em.bn.Factor
  * Performs bayesian inference in dynamic bayesian network representing tennis players and matches over the time.
  *
  */
+object InferDbnTennis {
+   case class Result(playerA: String, playerB: String, playerAWinner: Boolean, timeSlice: Int)
+}
 trait InferDbnTennis {
 
   /**

@@ -1,17 +1,13 @@
-package dk.tennis.em.dbn
+package dk.tennis.em.dbn.generic
 
 import dk.tennis.em.EMTrain._
-import DbnTennis._
 import dk.tennis.em.bn.Factor
+import dk.tennis.em.dbn.InferDbnTennis._
 
 /**
  * Dynamic Bayesian Network for tennis players and match results over the time.
  * @author korzekwad
  */
-object DbnTennis {
-  case class Result(playerA: String, playerB: String, playerAWinner: Boolean, timeSlice: Int)
-}
-
 trait DbnTennis {
   
   /**

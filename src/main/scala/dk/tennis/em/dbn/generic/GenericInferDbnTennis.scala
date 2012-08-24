@@ -1,6 +1,7 @@
-package dk.tennis.em.dbn
+package dk.tennis.em.dbn.generic
 import dk.tennis.em.bn.Factor
 import scala.Math._
+import dk.tennis.em.dbn._
 
 case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
 

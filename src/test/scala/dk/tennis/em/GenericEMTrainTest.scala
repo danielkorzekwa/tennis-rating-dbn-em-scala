@@ -3,8 +3,8 @@ package dk.tennis.em
 import org.junit._
 import Assert._
 import EMTrain._
-import dbn.DbnTennis._
 import dk.tennis.em.util.VectorAssert._
+import dk.tennis.em.dbn.InferDbnTennis._
 
 class GenericEMTrainTest {
 

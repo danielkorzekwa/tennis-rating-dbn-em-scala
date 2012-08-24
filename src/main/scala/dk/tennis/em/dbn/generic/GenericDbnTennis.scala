@@ -1,8 +1,8 @@
-package dk.tennis.em.dbn
+package dk.tennis.em.dbn.generic
 
 import dk.tennis.em.EMTrain._
 import scala.collection.mutable.ListBuffer
-import DbnTennis._
+import dk.tennis.em.dbn.InferDbnTennis._
 import dk.tennis.em.bn.Factor
 import Factor._
 

@@ -1,8 +1,9 @@
-package dk.tennis.em.dbn
+package dk.tennis.em.dbn.generic
 
 import org.junit._
 import Assert._
-import DbnTennis.Result
+import dk.tennis.em.dbn._
+import InferDbnTennis.Result
 import dk.tennis.em.util.VectorAssert._
 
 class GenericInferDbnTennisTest {

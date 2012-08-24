@@ -3,9 +3,10 @@ package dk.tennis.em
 import EMTrain._
 import scala.annotation.tailrec
 import dbn._
-import dbn.DbnTennis._
-import dk.tennis.em.dbn.GenericInferDbnTennis
+import dbn.InferDbnTennis._
+import dk.tennis.em.dbn.generic.GenericInferDbnTennis
 import GenericEMTrain._
+import generic.GenericDbnTennis
 
 /**
  * @see EMTrain
@@ -33,18 +34,19 @@ class GenericEMTrain extends EMTrain {
   def train(parameters: Params, results: List[Result], iterNum: Int, progress: (Int, Double) => Unit): Params = {
 
     @tailrec
-    def trainIteration(parameters: Params, iter: Int,prevLlh:Double=Double.MinValue): Params = {
+    def trainIteration(parameters: Params, iter: Int, prevLlh: Double = Double.MinValue): Params = {
 
       val sufficientStats = expectationStep(parameters, results)
       val newParameters = maximizationStep(sufficientStats)
-      val llh =  sufficientStats.loglikelihood
+      val llh = sufficientStats.loglikelihood
 
-      progress(iter,llh)
-      
-      /**For a better stopping criteria, please look here: em_converged.m (BNT tool) or Numerical Recipes in C p423
+      progress(iter, llh)
+
+      /**
+       * For a better stopping criteria, please look here: em_converged.m (BNT tool) or Numerical Recipes in C p423
        * (http://astronu.jinr.ru/wiki/upload/d/d6/NumericalRecipesinC.pdf)
        */
-      if (iter < iterNum && llh> prevLlh) trainIteration(newParameters, iter + 1,llh) else newParameters
+      if (iter < iterNum && llh > prevLlh) trainIteration(newParameters, iter + 1, llh) else newParameters
     }
 
     val newParameters = trainIteration(parameters, 1)
@@ -56,7 +58,6 @@ class GenericEMTrain extends EMTrain {
 
     val dbnTennis = new GenericDbnTennis(parameters.priorProb, parameters.emissionProb, parameters.transitionProb)
     results.foreach(r => dbnTennis.addResult(r))
-
     val inferDbnTennis = GenericInferDbnTennis(dbnTennis.getFactors())
 
     val priorRatingProbs = inferDbnTennis.getRatingPriorProbabilities()
@@ -67,10 +68,10 @@ class GenericEMTrain extends EMTrain {
     val emissionStats = sum(scoreEmissionProbs)
     val transitionStats = sum(ratingTransitionProbs)
 
-    SufficientStats(priorStats, priorRatingProbs.size, 
-    		emissionStats, scoreEmissionProbs.size, 
-    		transitionStats, ratingTransitionProbs.size, 
-    		inferDbnTennis.logLikelihood)
+    SufficientStats(priorStats, priorRatingProbs.size,
+      emissionStats, scoreEmissionProbs.size,
+      transitionStats, ratingTransitionProbs.size,
+      inferDbnTennis.logLikelihood)
   }
 
   /** @see EMTrain */
