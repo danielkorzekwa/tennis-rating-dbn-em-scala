@@ -38,5 +38,5 @@ trait InferDbnTennisFactory {
    * 1,2 - 0.02
    * ...
    */
-  def create(result: Seq[Result], priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]): InferDbnTennis
+  def create(results: Seq[Result], priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]): InferDbnTennis
 }

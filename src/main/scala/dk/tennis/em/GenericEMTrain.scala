@@ -28,7 +28,8 @@ object GenericEMTrain {
 
   }
 }
-class GenericEMTrain extends EMTrain {
+
+class GenericEMTrain(inferDbnTennisFactory: InferDbnTennisFactory) extends EMTrain {
 
   /** @see EMTrain */
   def train(parameters: Params, results: List[Result], iterNum: Int, progress: (Int, Double) => Unit): Params = {
@@ -56,9 +57,7 @@ class GenericEMTrain extends EMTrain {
   /** @see EMTrain */
   def expectationStep(parameters: Params, results: List[Result]): SufficientStats = {
 
-    val dbnTennis = new GenericDbnTennis(parameters.priorProb, parameters.emissionProb, parameters.transitionProb)
-    results.foreach(r => dbnTennis.addResult(r))
-    val inferDbnTennis = GenericInferDbnTennis(dbnTennis.getFactors())
+    val inferDbnTennis = inferDbnTennisFactory.create(results, parameters.priorProb, parameters.emissionProb, parameters.transitionProb)
 
     val priorRatingProbs = inferDbnTennis.getRatingPriorProbabilities()
     val scoreEmissionProbs = inferDbnTennis.getScoreEmissionProbabilities()

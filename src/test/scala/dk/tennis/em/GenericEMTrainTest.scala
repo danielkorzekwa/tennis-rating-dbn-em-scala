@@ -5,10 +5,11 @@ import Assert._
 import EMTrain._
 import dk.tennis.em.util.VectorAssert._
 import dk.tennis.em.dbn.InferDbnTennis._
+import dk.tennis.em.dbn.generic.GenericInferDbnTennisFactory
 
 class GenericEMTrainTest {
 
-  val emTrain = new GenericEMTrain()
+  val emTrain = new GenericEMTrain(GenericInferDbnTennisFactory())
 
   val priorProb = List(0.2, 0.5, 0.3)
 
