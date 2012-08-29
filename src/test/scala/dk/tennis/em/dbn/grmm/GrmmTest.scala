@@ -1,4 +1,4 @@
-package dk.tennis.em.grmm
+package dk.tennis.em.dbn.grmm
 
 import org.junit._
 import Assert._
@@ -30,7 +30,7 @@ class GrmmTest {
   }
 
   factors.foreach(f => factorGraph.addFactor(f))
-
+  
   @Test def inference {
 
     val inferencer = new JunctionTreeInferencer()
