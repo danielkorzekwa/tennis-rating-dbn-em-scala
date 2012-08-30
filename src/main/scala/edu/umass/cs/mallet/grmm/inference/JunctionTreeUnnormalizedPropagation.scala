@@ -17,8 +17,7 @@ import edu.umass.cs.mallet.grmm.types.HashVarSet
  * which is set in a factor graph. Code example for calculating log likelihood of evidence:
  * 
  * In this example, we obtain marginal of the first factor in a factor graph and then we take a logarithm
- * of sum of factor marginal values, but actually we could take any of factor graph's factors
- * and compute the log likelihood of evidence.
+ * of sum of factor marginal values.
  * 
  * val marginal = inferencer.lookupMarginal(factorGraph.factors().toList(0).asInstanceOf[TableFactor].varSet()).asInstanceOf[TableFactor]
  * val likelihood = marginal.getValues().sum
