@@ -167,7 +167,7 @@ class GrmmInferDbnTennisTest {
   }
 
   /**Tests for log likelihood.*/
- @Test def loglikelihood_single_result {
+  @Test def loglikelihood_single_result {
     val results = List(Result("playerA", "playerB", true, 1))
 
     val loglikelihood = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).logLikelihood()

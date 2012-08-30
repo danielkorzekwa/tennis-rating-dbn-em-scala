@@ -39,8 +39,8 @@ class GenericEMTrain(inferDbnTennisFactory: InferDbnTennisFactory) extends EMTra
 
       val sufficientStats = expectationStep(parameters, results)
       val newParameters = maximizationStep(sufficientStats)
-      val llh = sufficientStats.loglikelihood
 
+      val llh = sufficientStats.loglikelihood
       progress(iter, llh)
 
       /**
@@ -67,10 +67,12 @@ class GenericEMTrain(inferDbnTennisFactory: InferDbnTennisFactory) extends EMTra
     val emissionStats = sum(scoreEmissionProbs)
     val transitionStats = sum(ratingTransitionProbs)
 
+    val loglikelihood = inferDbnTennis.logLikelihood
+
     SufficientStats(priorStats, priorRatingProbs.size,
       emissionStats, scoreEmissionProbs.size,
       transitionStats, ratingTransitionProbs.size,
-      inferDbnTennis.logLikelihood)
+      loglikelihood)
   }
 
   /** @see EMTrain */
