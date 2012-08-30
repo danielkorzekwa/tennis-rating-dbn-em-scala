@@ -11,15 +11,22 @@ import edu.umass.cs.mallet.grmm.types.Variable
 import edu.umass.cs.mallet.grmm.types.HashVarSet
 
 /**
- * This is a modified version of edu.umass.cs.mallet.grmm.inference.JunctionTreePropagation with no normalization applied to factors in a factor graph.
- *  Having access to not normalized marginals allows for computing the log likelihood of evidence, which is set in a factor graph. Code example for calculating log likelihood of evidence:
+ * This is a modified version of edu.umass.cs.mallet.grmm.inference.JunctionTreePropagation
+ * with no normalization applied to factors in a factor graph.
+ * Having access to not normalized marginals allows for computing the log likelihood of evidence, 
+ * which is set in a factor graph. Code example for calculating log likelihood of evidence:
  * 
- * In this example, we obtain marginal of the first factor in a factor graph and then we take a logarithm of sum of factor marginal values, 
- * but actually we could take any of factor graph's factors and compute the log likelihood of evidence.
+ * In this example, we obtain marginal of the first factor in a factor graph and then we take a logarithm
+ * of sum of factor marginal values, but actually we could take any of factor graph's factors
+ * and compute the log likelihood of evidence.
  * 
  * val marginal = inferencer.lookupMarginal(factorGraph.factors().toList(0).asInstanceOf[TableFactor].varSet()).asInstanceOf[TableFactor]
  * val likelihood = marginal.getValues().sum
  * log(likelihood)
+ * 
+ * Mallet GRMM toolkit is created by
+ * Sutton, Charles.  "GRMM: GRaphical Models in Mallet."
+ * http://mallet.cs.umass.edu/grmm/. 2006.
  * 
  * @author korzekwad
  */
