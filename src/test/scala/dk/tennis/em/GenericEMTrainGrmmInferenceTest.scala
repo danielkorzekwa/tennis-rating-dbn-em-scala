@@ -8,7 +8,7 @@ import dk.tennis.em.dbn.InferDbnTennis._
 import dk.tennis.em.dbn.generic.GenericInferDbnTennisFactory
 import dk.tennis.em.dbn.grmm.GrmmInferDbnTennisFactory
 
-class GenericEMTrainTest {
+class GenericEMTrainGrmmInferenceTest {
 
   val emTrain = new GenericEMTrain(GrmmInferDbnTennisFactory())
 
@@ -96,7 +96,7 @@ class GenericEMTrainTest {
     assertEquals(18, trainedParams.emissionProb.size)
     assertEquals(0, trainedParams.transitionProb.size)
 
-    assertEquals(247, llh.size)
+    assertEquals(250, llh.size)
   }
 
   @Test def train_all_results_for_two_time_slices {
@@ -159,7 +159,7 @@ class GenericEMTrainTest {
   /**
    * Tests for expectationStep().
    */
-  @Ignore @Test(expected = classOf[IllegalArgumentException]) def expectationStep_no_results {
+  @Test(expected = classOf[IllegalArgumentException]) def expectationStep_no_results {
     val results = Nil
     val sufficientStats = emTrain.expectationStep(parameters, results)
   }

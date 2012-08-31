@@ -31,7 +31,7 @@ class GrmmInferDbnTennisTest {
    *
    */
 
-  @Ignore @Test(expected = classOf[IllegalArgumentException]) def getPriorRating_no_results_exist {
+  @Test(expected = classOf[IllegalArgumentException]) def getPriorRating_no_results_exist {
     val priorProbs = createInferDbnTennis(Nil, priorProb, emissionProb, transitionProb).getRatingPriorProbabilities()
   }
 
@@ -81,7 +81,7 @@ class GrmmInferDbnTennisTest {
   /**
    * Tests for getScoreEmissionProbabilities
    */
-  @Ignore @Test(expected = classOf[IllegalArgumentException]) def getScoreEmissionProbabilities_no_results {
+  @Test(expected = classOf[IllegalArgumentException]) def getScoreEmissionProbabilities_no_results {
     val scoreProbs = createInferDbnTennis(Nil, priorProb, emissionProb, transitionProb).getScoreEmissionProbabilities()
   }
 
@@ -117,7 +117,7 @@ class GrmmInferDbnTennisTest {
   /**
    * Tests for getRatingTransitionProbabilities
    */
-  @Ignore @Test(expected = classOf[IllegalArgumentException]) def getRatingTransitionProbabilities_no_results {
+  @Test(expected = classOf[IllegalArgumentException]) def getRatingTransitionProbabilities_no_results {
     val transitionProbs = createInferDbnTennis(Nil, priorProb, emissionProb, transitionProb).getRatingTransitionProbabilities()
   }
 

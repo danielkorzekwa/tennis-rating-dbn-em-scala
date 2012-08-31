@@ -15,6 +15,7 @@ case class GrmmInferDbnTennisFactory extends InferDbnTennisFactory {
 
   /**@see InferDbnTennisFactory*/
   def create(results: Seq[Result], priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]): InferDbnTennis = {
+    require(results.size>0,"Results can't be empty")
     val factors = toFactors(results, priorProb, emissionProb, transitionProb)
 
     /**Map[variableId,variable]*/
