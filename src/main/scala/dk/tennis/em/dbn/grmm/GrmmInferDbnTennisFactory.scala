@@ -9,6 +9,7 @@ import edu.umass.cs.mallet.grmm.types.Variable
 import edu.umass.cs.mallet.grmm.types.TableFactor
 import dk.tennis.em.bn.Factor
 import scala.collection._
+import edu.umass.cs.mallet.grmm.types.LogTableFactor
 
 case class GrmmInferDbnTennisFactory extends InferDbnTennisFactory {
 
@@ -31,9 +32,9 @@ case class GrmmInferDbnTennisFactory extends InferDbnTennisFactory {
     dbnTennis.getFactors()
   }
 
-  private def toGrmmFactor(factor: Factor, grmmVariablesMap: Map[String, Variable]): TableFactor = {
+  private def toGrmmFactor(factor: Factor, grmmVariablesMap: Map[String, Variable]): LogTableFactor = {
     val variables = factor.variables.map(v => grmmVariablesMap(v.name)).toArray
-    new TableFactor(variables, factor.values.toArray)
+     LogTableFactor.makeFromValues(variables, factor.values.toArray)
   }
 
 }

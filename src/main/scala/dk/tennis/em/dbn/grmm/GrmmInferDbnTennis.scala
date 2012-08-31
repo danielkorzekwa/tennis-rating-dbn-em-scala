@@ -14,6 +14,7 @@ import edu.umass.cs.mallet.grmm.inference.TreeBP
 import edu.umass.cs.mallet.grmm.inference.BruteForceInferencer
 import edu.umass.cs.mallet.grmm.inference.JunctionTreeUnnormalizedPropagation
 import JunctionTreeUnnormalizedPropagation._
+import edu.umass.cs.mallet.grmm.types.AbstractTableFactor
 
 /**
  * Inference engine based on Mallet GRMM toolkit (http://mallet.cs.umass.edu/grmm/index.php)
@@ -24,7 +25,9 @@ import JunctionTreeUnnormalizedPropagation._
 case class GrmmInferDbnTennis(factorGraph: FactorGraph) extends InferDbnTennis {
 
   private val junctionTreePropagation = new JunctionTreeUnnormalizedPropagation(new SumProductMessageStrategy())
-  private val inferencer = new JunctionTreeInferencer(junctionTreePropagation)
+ private val inferencer = new JunctionTreeInferencer(junctionTreePropagation)
+ 
+  
   inferencer.computeMarginals(factorGraph)
 
   /**@see InferDbnTennis.*/
@@ -43,10 +46,10 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph) extends InferDbnTennis {
    */
   private def marginalizeFactors(factorVarNum: Int): Seq[Seq[Double]] = {
 
-    val factors: Seq[TableFactor] = factorGraph.factors().map(f => f.asInstanceOf[TableFactor]).filter(f => f.varSet().size == factorVarNum).toSeq
+    val factors: Seq[AbstractTableFactor] = factorGraph.factors().map(f => f.asInstanceOf[AbstractTableFactor]).filter(f => f.varSet().size == factorVarNum).toSeq
     val marginalFactors = factors.map(f => inferencer.lookupMarginal(f.varSet()))
     val factorProbabilities = marginalFactors.map { f =>
-      val probs = f.asInstanceOf[TableFactor].getValues().toSeq
+      val probs = f.asInstanceOf[AbstractTableFactor].getValues().toSeq
       val normalizationConstant = probs.sum
       val normalizedProbs = probs.map(p => p / normalizationConstant)
       normalizedProbs
@@ -58,7 +61,7 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph) extends InferDbnTennis {
   /**@see InferDbnTennis.*/
   def logLikelihood(): Double = {
     
-    val marginal = inferencer.lookupMarginal(factorGraph.factors().toList(0).asInstanceOf[TableFactor].varSet()).asInstanceOf[TableFactor]
+    val marginal = inferencer.lookupMarginal(factorGraph.factors().toList(0).asInstanceOf[AbstractTableFactor].varSet()).asInstanceOf[AbstractTableFactor]
     val likelihood = marginal.getValues().sum
     log(likelihood)
   }

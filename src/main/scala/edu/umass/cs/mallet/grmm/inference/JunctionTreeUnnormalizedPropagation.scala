@@ -11,16 +11,22 @@ import edu.umass.cs.mallet.grmm.types.Variable
 import edu.umass.cs.mallet.grmm.types.HashVarSet
 
 /**
- * This is a modified version of edu.umass.cs.mallet.grmm.inference.JunctionTreePropagation with no normalization applied to factors in a factor graph.
- *  Having access to not normalized marginals allows for computing the log likelihood of evidence, which is set in a factor graph. Code example for calculating log likelihood of evidence:
- * 
- * In this example, we obtain marginal of the first factor in a factor graph and then we take a logarithm of sum of factor marginal values, 
- * but actually we could take any of factor graph's factors and compute the log likelihood of evidence.
- * 
+ * This is a modified version of edu.umass.cs.mallet.grmm.inference.JunctionTreePropagation
+ * with no normalization applied to factors in a factor graph.
+ * Having access to not normalized marginals allows for computing the log likelihood of evidence,
+ * which is set in a factor graph. Code example for calculating log likelihood of evidence:
+ *
+ * In this example, we obtain marginal of the first factor in a factor graph and then we take a logarithm
+ * of sum of factor marginal values.
+ *
  * val marginal = inferencer.lookupMarginal(factorGraph.factors().toList(0).asInstanceOf[TableFactor].varSet()).asInstanceOf[TableFactor]
  * val likelihood = marginal.getValues().sum
  * log(likelihood)
- * 
+ *
+ * Mallet GRMM toolkit is created by
+ * Sutton, Charles.  "GRMM: GRaphical Models in Mallet."
+ * http://mallet.cs.umass.edu/grmm/. 2006.
+ *
  * @author korzekwad
  */
 
@@ -67,6 +73,46 @@ object JunctionTreeUnnormalizedPropagation {
     }
   }
 
+  class MaxProductMessageStrategy extends MessageStrategy with Serializable {
+
+    /**
+     * This sends a max-product message.
+     */
+    def sendMessage(jt: JunctionTree, from: VarSet, to: VarSet) {
+      //      System.err.println ("Send message "+from+" --> "+to);
+      val sepset: Collection[_ <: Any] = jt.getSepset(from, to)
+      val fromCpf: Factor = jt.getCPF(from)
+      val toCpf: Factor = jt.getCPF(to)
+      val oldSepsetPot: Factor = jt.getSepsetPot(from, to)
+      val lambda: Factor = fromCpf.extractMax(sepset)
+
+      //  lambda.normalize ();
+
+      jt.setSepsetPot(lambda, from, to)
+      toCpf.multiplyBy(lambda)
+      toCpf.divideBy(oldSepsetPot)
+      //   toCpf.normalize ();
+    }
+
+    def extractBelief(cpf: Factor, varSet: VarSet): Factor =
+      {
+        return cpf.extractMax(varSet)
+      }
+
+    // Serialization
+    private val serialVersionUID: Long = 1
+    private val CUURENT_SERIAL_VERSION: Int = 1
+
+    private def writeObject(out: ObjectOutputStream) {
+      out.defaultWriteObject()
+      out.writeInt(CUURENT_SERIAL_VERSION)
+    }
+
+    private def readObject(in: ObjectInputStream) {
+      in.defaultReadObject()
+      in.readInt() // version
+    }
+  }
 }
 class JunctionTreeUnnormalizedPropagation(strategy: MessageStrategy) extends JunctionTreePropagation(strategy) {
 

@@ -10,7 +10,6 @@ import dk.tennis.em.dbn.grmm.GrmmInferDbnTennisFactory
 
 class GenericEMTrainTest {
 
-  //val emTrain = new GenericEMTrain(GenericInferDbnTennisFactory())
   val emTrain = new GenericEMTrain(GrmmInferDbnTennisFactory())
 
   val priorProb = List(0.2, 0.5, 0.3)
@@ -137,6 +136,24 @@ class GenericEMTrainTest {
     vectorAssert(List(0.9890, 0.0058, 0.0051, 0.0087, 0.9804, 0.0109, 0.0065, 0.0185, 0.9750), trainedParams.transitionProb, 0.0001)
 
     vectorAssert(List(-3.965451, -3.598777), llh.reverse, 0.0001)
+  }
+
+  @Test def train_all_results_for_50_time_slices_50_iterations {
+
+    val results = (1 to 50).flatMap(i => Result("P1", "P2", true, i) :: Result("P1", "P3", true, i) :: Result("P2", "P3", false, i) :: Nil)
+
+    val iterNum = 50;
+    val trainedParams = emTrain.train(parameters, results.toList, iterNum, progress)
+
+    assertEquals(3, trainedParams.priorProb.size)
+    assertEquals(18, trainedParams.emissionProb.size)
+    assertEquals(9, trainedParams.transitionProb.size)
+
+    vectorAssert(List(0.5000, 0.0797, 0.4203), trainedParams.priorProb, 0.0001)
+    vectorAssert(List(0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 1.0000, 1.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000), trainedParams.emissionProb, 0.0001)
+    vectorAssert(List(1.0000, 0.0000, 0.0000, 0.0000, 0.9905, 0.0095, 0.0000, 0.0018, 0.9982), trainedParams.transitionProb, 0.0001)
+
+    vectorAssert(List(-66.3007, -2.5950, -1.6045, -1.4194, -1.3973, -1.3899, -1.3875), llh.reverse.take(7), 0.0001)
   }
 
   /**
