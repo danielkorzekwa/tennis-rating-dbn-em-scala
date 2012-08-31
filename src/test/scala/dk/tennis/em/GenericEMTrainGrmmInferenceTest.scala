@@ -7,6 +7,7 @@ import dk.tennis.em.util.VectorAssert._
 import dk.tennis.em.dbn.InferDbnTennis._
 import dk.tennis.em.dbn.generic.GenericInferDbnTennisFactory
 import dk.tennis.em.dbn.grmm.GrmmInferDbnTennisFactory
+import scala.util.Random
 
 class GenericEMTrainGrmmInferenceTest {
 
@@ -118,8 +119,6 @@ class GenericEMTrainGrmmInferenceTest {
 
   @Test def train_all_results_for_two_time_slices_two_iterations {
 
-    //val results = (1 to 8).flatMap( i => Result("P1", "P2", true, i) :: Result("P1", "P3", true, i) :: Result("P2", "P3", false, i) :: Nil)
-
     val results = Result("P1", "P2", true, 1) :: Result("P1", "P3", true, 1) :: Result("P2", "P3", false, 1) ::
       Result("P1", "P2", true, 2) :: Result("P1", "P3", false, 2) :: Result("P2", "P3", false, 2) ::
       Nil
@@ -154,6 +153,32 @@ class GenericEMTrainGrmmInferenceTest {
     vectorAssert(List(1.0000, 0.0000, 0.0000, 0.0000, 0.9905, 0.0095, 0.0000, 0.0018, 0.9982), trainedParams.transitionProb, 0.0001)
 
     vectorAssert(List(-66.3007, -2.5950, -1.6045, -1.4194, -1.3973, -1.3899, -1.3875), llh.reverse.take(7), 0.0001)
+  }
+
+  @Test def train_all_results_for_5_time_slices_10_iterations_64_matches_in_every_time_slice {
+
+    val rand = new Random(System.currentTimeMillis())
+    val results = (1 to 5).flatMap { dayIndex =>
+      (1 to 64).map { matchIndex =>
+        val winner = rand.nextDouble() < (matchIndex.toDouble / (matchIndex + 10))
+        if (rand.nextBoolean())
+          Result("P" + matchIndex, "P" + matchIndex + 1, winner, dayIndex)
+        else
+          Result("P" + matchIndex + 1, "P" + matchIndex, !winner, dayIndex)
+      }
+    }
+
+    val iterNum = 10;
+    val trainedParams = emTrain.train(parameters, results.toList, iterNum, progress)
+
+    assertEquals(3, trainedParams.priorProb.size)
+    assertEquals(18, trainedParams.emissionProb.size)
+    assertEquals(9, trainedParams.transitionProb.size)
+
+    println(trainedParams.priorProb.map(e => e.formatted("%.4f")).toList)
+    println(trainedParams.emissionProb.map(e => e.formatted("%.4f")).toList)
+    println(trainedParams.transitionProb.map(e => e.formatted("%.4f")).toList)
+
   }
 
   /**
