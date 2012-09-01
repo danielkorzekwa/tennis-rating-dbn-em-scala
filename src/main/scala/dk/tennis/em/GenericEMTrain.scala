@@ -32,7 +32,7 @@ object GenericEMTrain {
 class GenericEMTrain(inferDbnTennisFactory: InferDbnTennisFactory) extends EMTrain {
 
   /** @see EMTrain */
-  def train(parameters: Params, results: List[Result], iterNum: Int, progress: (Int, Double) => Unit): Params = {
+  def train(parameters: Params, results: Seq[Result], iterNum: Int, progress: (Int, Double) => Unit): Params = {
 
     @tailrec
     def trainIteration(parameters: Params, iter: Int, prevLlh: Double = Double.MinValue): Params = {
@@ -55,14 +55,14 @@ class GenericEMTrain(inferDbnTennisFactory: InferDbnTennisFactory) extends EMTra
   }
 
   /** @see EMTrain */
-  def expectationStep(parameters: Params, results: List[Result]): SufficientStats = {
+  def expectationStep(parameters: Params, results: Seq[Result]): SufficientStats = {
 
     val inferDbnTennis = inferDbnTennisFactory.create(results, parameters.priorProb, parameters.emissionProb, parameters.transitionProb)
 
     val priorRatingProbs = inferDbnTennis.getRatingPriorProbabilities()
     val scoreEmissionProbs = inferDbnTennis.getScoreEmissionProbabilities()
     val ratingTransitionProbs = inferDbnTennis.getRatingTransitionProbabilities()
-
+    
     val priorStats = sum(priorRatingProbs)
     val emissionStats = sum(scoreEmissionProbs)
     val transitionStats = sum(ratingTransitionProbs)

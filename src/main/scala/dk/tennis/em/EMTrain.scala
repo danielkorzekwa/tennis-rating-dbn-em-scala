@@ -47,7 +47,7 @@ trait EMTrain {
    * @return Learnt parameters (prior, emission and transition).
    *
    */
-  def train(parameters: Params, results: List[Result], iterNum: Int, progress: (Int, Double) => Unit): Params
+  def train(parameters: Params, results: Seq[Result], iterNum: Int, progress: (Int, Double) => Unit): Params
 
   /**
    * E-step of EM algorithm.
@@ -60,7 +60,7 @@ trait EMTrain {
    *
    * @return Sufficient statistics (Refer to EM algorithm, 'Probabilistic Graphical Models: Principles and Techniques' book by Daphne Koller and Nir Friedman)
    */
-  def expectationStep(parameters: Params, results: List[Result]): SufficientStats
+  def expectationStep(parameters: Params, results: Seq[Result]): SufficientStats
 
   /**
    * M-step of EM algorithm.
