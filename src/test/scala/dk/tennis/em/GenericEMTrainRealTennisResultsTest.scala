@@ -38,9 +38,9 @@ class GenericEMTrainRealTennisResultsTest {
     println("Log likelihood for iteration %d = %f".format(currentIter, logLikelihood))
   }
 
-  val iterNum = 3
+  val iterNum = 30
 
-  @Ignore @Test def emTrain_for_tennis_results_2010_and_2011 {
+  @Test def emTrain_for_tennis_results_2010_and_2011 {
 
     val atpMatchesLoader = CSVATPMatchesLoader.fromCSVFile("./src/test/resources/match_data_2010_2011.csv")
     val matches: Seq[MatchComposite] = (2010 to 2010).flatMap(year => atpMatchesLoader.loadMatches(year))
@@ -57,7 +57,7 @@ class GenericEMTrainRealTennisResultsTest {
       }
     }
 
-    val results = for (m <- schuffledMatches.take(200)) yield {
+    val results = for (m <- schuffledMatches.take(100)) yield {
       toResult(m)
     }
 
@@ -70,11 +70,13 @@ class GenericEMTrainRealTennisResultsTest {
 
   private def toResult(m: MatchComposite): Result = {
 
-    val dayOfYear = new DateTime(m.tournament.tournamentTime).getDayOfYear()
+    val timeDate = new DateTime(m.tournament.tournamentTime)
+    val timeSlice =  if(timeDate.getWeekOfWeekyear()==53) 0 else timeDate.getWeekOfWeekyear() //53 - last week of the previous year
+ 
     val playerAName = m.matchFacts.playerAFacts.playerName
     val playerBName = m.matchFacts.playerBFacts.playerName
     val playerAWinner = m.matchFacts.winner.equals(m.matchFacts.playerAFacts.playerName)
 
-    Result(playerAName, playerBName, playerAWinner, dayOfYear)
+    Result(playerAName, playerBName, playerAWinner, timeSlice)
   }
 }
