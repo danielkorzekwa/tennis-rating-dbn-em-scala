@@ -102,6 +102,22 @@ class GenericDbnTennisTest {
     vectorAssert(emmissionFactor.values, factors(2).values, 0.0001)
   }
 
+  @Test def addToFactors_single_result_dont_set_evidence {
+    val dbnTennis = new GenericDbnTennis(priorProb, emissionProb, transitionProb, false)
+    dbnTennis.addResult(Result("playerA", "playerB", true, 4))
+    val factors = dbnTennis.getFactors()
+
+    assertEquals(3, factors.size)
+    assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), priorProb: _*), factors(0))
+    assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), priorProb: _*), factors(1))
+
+    val emmissionFactor = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
+      emissionProb: _*)
+
+    assertEquals(emmissionFactor.variables, factors(2).variables)
+    vectorAssert(emmissionFactor.values, factors(2).values, 0.0001)
+  }
+
   @Test def addToFactors_two_results_for_player_A_in_time_slice_4 {
     dbnTennis.addResult(Result("playerA", "playerB", true, 4))
     dbnTennis.addResult(Result("playerA", "playerC", true, 4))

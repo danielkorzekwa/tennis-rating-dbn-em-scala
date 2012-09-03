@@ -38,8 +38,9 @@ import Factor._
  * 1,2 - 0.02
  * ...
  *
+ * @param applyEvidence If false then evidence (win/lose) is not applied to score factors.
  */
-class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]) extends DbnTennis {
+class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double], applyEvidence: Boolean = true) extends DbnTennis {
 
   private val results: ListBuffer[Result] = ListBuffer()
   private val factors: ListBuffer[Factor] = ListBuffer()
@@ -121,9 +122,14 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
       emissionProb)
 
     implicit def booleanToString(value: Boolean): String = if (value) "w" else "l"
-    val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName, booleanToString(result.playerAWinner)))
 
-    factors += emissionFactorWithEvidence
+    if (applyEvidence) {
+      val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName, booleanToString(result.playerAWinner)))
+      factors += emissionFactorWithEvidence
+    } else {
+      factors += emissionFactor
+    }
+
   }
 
   private def createPlayerVariable(playerName: String, timeSlice: Int): Var = {

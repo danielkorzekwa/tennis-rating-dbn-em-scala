@@ -15,6 +15,7 @@ import edu.umass.cs.mallet.grmm.inference.BruteForceInferencer
 import edu.umass.cs.mallet.grmm.inference.JunctionTreeUnnormalizedPropagation
 import JunctionTreeUnnormalizedPropagation._
 import edu.umass.cs.mallet.grmm.types.AbstractTableFactor
+import edu.umass.cs.mallet.grmm.inference.LoopyBP
 
 /**
  * Inference engine based on Mallet GRMM toolkit (http://mallet.cs.umass.edu/grmm/index.php)
@@ -25,9 +26,9 @@ import edu.umass.cs.mallet.grmm.types.AbstractTableFactor
 case class GrmmInferDbnTennis(factorGraph: FactorGraph) extends InferDbnTennis {
 
   private val junctionTreePropagation = new JunctionTreeUnnormalizedPropagation(new SumProductMessageStrategy())
- private val inferencer = new JunctionTreeInferencer(junctionTreePropagation)
- 
-  
+  private val inferencer = new JunctionTreeInferencer(junctionTreePropagation)
+  //  private val inferencer = new TreeBP()
+  //  private val inferencer = new LoopyBP()
   inferencer.computeMarginals(factorGraph)
 
   /**@see InferDbnTennis.*/
@@ -60,7 +61,7 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph) extends InferDbnTennis {
 
   /**@see InferDbnTennis.*/
   def logLikelihood(): Double = {
-    
+
     val marginal = inferencer.lookupMarginal(factorGraph.factors().toList(0).asInstanceOf[AbstractTableFactor].varSet()).asInstanceOf[AbstractTableFactor]
     val likelihood = marginal.getValues().sum
     log(likelihood)
