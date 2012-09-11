@@ -50,10 +50,10 @@ class GrmmInferDbnTennisRealTennisResultsTest {
     println(inferDbnTennisdef.getScoreEmissionProbabilities()(120).map(e => e.formatted("%.4f")).toList)
     println(inferDbnTennisdef.getRatingTransitionProbabilities()(140).map(e => e.formatted("%.4f")).toList)
 
-    assertEquals(-138.116, inferDbnTennisdef.logLikelihood(), 0.001)
-    
+    assertEquals(-138.118, inferDbnTennisdef.logLikelihood(), 0.001)
+
     vectorAssert(List(0.1198, 0.5317, 0.3485), inferDbnTennisdef.getRatingPriorProbabilities()(76), 0.0001)
-    vectorAssert(List(0.0481, 0.0000, 0.0533, 0.0000, 0.0182, 0.0000, 0.1811, 0.0000, 0.2515, 0.0000, 0.0973, 0.0000, 0.1085, 0.0000, 0.1706, 0.0000, 0.0714, 0.0000), inferDbnTennisdef.getScoreEmissionProbabilities()(120), 0.0001)
+    vectorAssert(List(0.0442, 0.0000, 0.0549, 0.0000, 0.0201, 0.0000, 0.1802, 0.0000, 0.2521, 0.0000, 0.0982, 0.0000, 0.1131, 0.0000, 0.1688, 0.0000, 0.0685, 0.0000), inferDbnTennisdef.getScoreEmissionProbabilities()(120), 0.0001)
     vectorAssert(List(0.0544, 0.0012, 0.0016, 0.0023, 0.4668, 0.0067, 0.0016, 0.0067, 0.4587), inferDbnTennisdef.getRatingTransitionProbabilities()(140), 0.0001)
   }
 

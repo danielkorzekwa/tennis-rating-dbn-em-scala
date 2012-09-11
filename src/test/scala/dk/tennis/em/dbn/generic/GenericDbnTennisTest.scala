@@ -103,8 +103,8 @@ class GenericDbnTennisTest {
   }
 
   @Test def addToFactors_single_result_dont_set_evidence {
-    val dbnTennis = new GenericDbnTennis(priorProb, emissionProb, transitionProb, false)
-    dbnTennis.addResult(Result("playerA", "playerB", true, 4))
+    val dbnTennis = new GenericDbnTennis(priorProb, emissionProb, transitionProb)
+    dbnTennis.addResult(Result("playerA", "playerB", None, 4))
     val factors = dbnTennis.getFactors()
 
     assertEquals(3, factors.size)
@@ -293,4 +293,28 @@ class GenericDbnTennisTest {
     assertEquals(List("playerA", "playerB", "playerC"), dbnTennis.getPlayerIds())
   }
 
+  /**
+   * Tests for getEvidenceVariables
+   */
+  @Test def getEvidenceVariables_no_results {
+    assertEquals(Nil, dbnTennis.getEvidenceVariables())
+  }
+
+  @Test def getEvidenceVariables_one_unkown_result {
+    dbnTennis.addResult(Result("playerA", "playerB", None, 1))
+    assertEquals(Nil, dbnTennis.getEvidenceVariables())
+  }
+
+  @Test def getEvidenceVariables_one_known_result_and_one_unkown_result {
+    dbnTennis.addResult(Result("playerA", "playerB", false, 1))
+    assertEquals(List(Var("score_playerA_playerB_1", ("w", "l")) -> 1), dbnTennis.getEvidenceVariables())
+  }
+
+  @Test def getEvidenceVariables_two_known_results {
+    dbnTennis.addResult(Result("playerA", "playerB", false, 1))
+    dbnTennis.addResult(Result("playerB", "playerC", true, 3))
+    assertEquals(
+      Var("score_playerA_playerB_1", ("w", "l")) -> 1 ::
+        Var("score_playerB_playerC_3", ("w", "l")) -> 0 :: Nil, dbnTennis.getEvidenceVariables())
+  }
 }

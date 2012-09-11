@@ -3,6 +3,7 @@ package dk.tennis.em.dbn.generic
 import dk.tennis.em.EMTrain._
 import dk.tennis.em.bn.Factor
 import dk.tennis.em.dbn.InferDbnTennis._
+import dk.tennis.em.bn.Factor._
 
 /**
  * Dynamic Bayesian Network for tennis players and match results over the time.
@@ -28,5 +29,7 @@ trait DbnTennis {
   /**Returns results.*/
   def getResults():List[Result]
   
+  /**return Seq[Tuple2[evidence variable, variable assignment index]]*/
+  def getEvidenceVariables():Seq[Tuple2[Var,Int]]
 
 }

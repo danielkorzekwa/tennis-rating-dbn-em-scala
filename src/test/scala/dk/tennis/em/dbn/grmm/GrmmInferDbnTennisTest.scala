@@ -179,6 +179,6 @@ class GrmmInferDbnTennisTest {
     val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", true, 10))
 
     val loglikelihood = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).logLikelihood()
-    assertEquals(-2.0498, loglikelihood, 0.0001)
+    assertEquals(-2.0499, loglikelihood, 0.0001)
   }
 }

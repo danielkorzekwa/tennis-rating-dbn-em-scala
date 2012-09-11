@@ -38,12 +38,14 @@ import Factor._
  * 1,2 - 0.02
  * ...
  *
- * @param applyEvidence If false then evidence (win/lose) is not applied to score factors.
  */
-class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double], applyEvidence: Boolean = true) extends DbnTennis {
+class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]) extends DbnTennis {
 
   private val results: ListBuffer[Result] = ListBuffer()
   private val factors: ListBuffer[Factor] = ListBuffer()
+
+  /**Seq[Tuple2[variable, variable assignment index]]*/
+  private val evidenceVariables: ListBuffer[Tuple2[Var, Int]] = ListBuffer()
 
   /**
    * Add tennis result between two tennis players to dynamic bayesian network.
@@ -81,6 +83,8 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
   /**Returns underlying list of factors for dynamic bayesian network.*/
   def getFactors(): List[Factor] = factors.toList
 
+  def getEvidenceVariables(): Seq[Tuple2[Var, Int]] = evidenceVariables.toList
+
   /**Add  player factor to factor list if not exist yet (either prior or transition factor)*/
   private def addPlayerFactor(playerName: String, timeSlice: Int) = {
 
@@ -117,15 +121,20 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
     val playerBVar = createPlayerVariable(result.playerB, result.timeSlice)
 
     val scoreVarName = "score_%s_%s_%d".format(result.playerA, result.playerB, result.timeSlice)
+    val scoreVar = Var(scoreVarName, ("w", "l"))
+
     val emissionFactor = Factor(
-      playerAVar :: playerBVar :: Var(scoreVarName, ("w", "l")) :: Nil,
+      playerAVar :: playerBVar :: scoreVar :: Nil,
       emissionProb)
 
     implicit def booleanToString(value: Boolean): String = if (value) "w" else "l"
 
-    if (applyEvidence) {
-      val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName, booleanToString(result.playerAWinner)))
+    if (result.playerAWinner.isDefined) {
+      val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName, booleanToString(result.playerAWinner.get)))
       factors += emissionFactorWithEvidence
+
+      val assignmentIndex = if (result.playerAWinner.get) 0 else 1
+      evidenceVariables += scoreVar -> assignmentIndex
     } else {
       factors += emissionFactor
     }

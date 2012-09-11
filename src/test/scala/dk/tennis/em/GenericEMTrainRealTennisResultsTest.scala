@@ -38,7 +38,7 @@ class GenericEMTrainRealTennisResultsTest {
     println("Log likelihood for iteration %d = %f".format(currentIter, logLikelihood))
   }
 
-  val iterNum = 30
+  val iterNum = 5
 
   @Test def emTrain_for_tennis_results_2010_and_2011 {
 
@@ -57,7 +57,7 @@ class GenericEMTrainRealTennisResultsTest {
       }
     }
 
-    val results = for (m <- schuffledMatches.take(100)) yield {
+    val results = for (m <- schuffledMatches.take(500)) yield {
       toResult(m)
     }
 

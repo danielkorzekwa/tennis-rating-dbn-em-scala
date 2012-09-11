@@ -7,7 +7,11 @@ import dk.tennis.em.bn.Factor
  *
  */
 object InferDbnTennis {
-   case class Result(playerA: String, playerB: String, playerAWinner: Boolean, timeSlice: Int)
+ object Result {
+   def apply(playerA: String, playerB: String,playerAWinner:Boolean,timeSlice: Int):Result = 
+     Result(playerA,playerB,Option(playerAWinner),timeSlice)
+ }  
+ case class Result(playerA: String, playerB: String, playerAWinner: Option[Boolean], timeSlice: Int)
 }
 trait InferDbnTennis {
 

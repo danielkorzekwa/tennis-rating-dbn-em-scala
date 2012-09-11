@@ -12,8 +12,6 @@ import edu.umass.cs.mallet.grmm.types.Factor
 import edu.umass.cs.mallet.grmm.inference.JunctionTreePropagation
 import edu.umass.cs.mallet.grmm.inference.TreeBP
 import edu.umass.cs.mallet.grmm.inference.BruteForceInferencer
-import edu.umass.cs.mallet.grmm.inference.JunctionTreeUnnormalizedPropagation
-import JunctionTreeUnnormalizedPropagation._
 import edu.umass.cs.mallet.grmm.types.AbstractTableFactor
 import edu.umass.cs.mallet.grmm.inference.LoopyBP
 
@@ -22,14 +20,16 @@ import edu.umass.cs.mallet.grmm.inference.LoopyBP
  *
  * @author korzekwad
  *
+ * @param factorGraph Factor graph with evidence applied
+ * @param originalFactorGraph Factor graph without evidence applied
+ * @evidence Evidence representing results for tennis matches
+ *
  */
-case class GrmmInferDbnTennis(factorGraph: FactorGraph) extends InferDbnTennis {
+case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: FactorGraph, evidence: Seq[Assignment]) extends InferDbnTennis {
 
-  private val junctionTreePropagation = new JunctionTreeUnnormalizedPropagation(new SumProductMessageStrategy())
-  private val inferencer = new JunctionTreeInferencer(junctionTreePropagation)
-  //  private val inferencer = new TreeBP()
-  //  private val inferencer = new LoopyBP()
-  inferencer.computeMarginals(factorGraph)
+  private val inferencer = new LoopyBP()
+
+  def computeMarginals() { inferencer.computeMarginals(factorGraph) }
 
   /**@see InferDbnTennis.*/
   def getRatingPriorProbabilities(): Seq[Seq[Double]] = marginalizeFactors(1)
@@ -39,6 +39,19 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph) extends InferDbnTennis {
 
   /**@see InferDbnTennis.*/
   def getRatingTransitionProbabilities(): Seq[Seq[Double]] = marginalizeFactors(2)
+
+  /**@see InferDbnTennis.*/
+  def logLikelihood(): Double = {
+    val variables = factorGraph.variablesSet().map(v => v.asInstanceOf[Variable]).toArray
+    val assignment = new Assignment(variables, variables.map(v => 0))
+    evidence.foreach(e => assignment.setValues(e))
+
+    val posteriorLogLikelihood = inferencer.lookupLogJoint(assignment)
+    val productLogLikelihood = originalFactorGraph.logProduct(assignment)
+    val evidenceLogLikelihood = productLogLikelihood - posteriorLogLikelihood
+
+    evidenceLogLikelihood
+  }
 
   /**
    * Find all factors with a given number of variables and marginalize them from the factor graph.
@@ -51,19 +64,10 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph) extends InferDbnTennis {
     val marginalFactors = factors.map(f => inferencer.lookupMarginal(f.varSet()))
     val factorProbabilities = marginalFactors.map { f =>
       val probs = f.asInstanceOf[AbstractTableFactor].getValues().toSeq
-      val normalizationConstant = probs.sum
-      val normalizedProbs = probs.map(p => p / normalizationConstant)
-      normalizedProbs
+      probs
     }
 
     factorProbabilities
   }
 
-  /**@see InferDbnTennis.*/
-  def logLikelihood(): Double = {
-
-    val marginal = inferencer.lookupMarginal(factorGraph.factors().toList(0).asInstanceOf[AbstractTableFactor].varSet()).asInstanceOf[AbstractTableFactor]
-    val likelihood = marginal.getValues().sum
-    log(likelihood)
-  }
 }
