@@ -10,6 +10,7 @@ import EMTrain.Params
 import dbn.InferDbnTennis._
 import scala.util.Random
 import org.joda.time.DateTime
+import org.joda.time.Duration
 
 class GenericEMTrainRealTennisResultsTest {
 
@@ -57,8 +58,9 @@ class GenericEMTrainRealTennisResultsTest {
       }
     }
 
+     val firstMatchTime = schuffledMatches.head.tournament.tournamentTime.getTime()
     val results = for (m <- schuffledMatches.take(500)) yield {
-      toResult(m)
+      toResult(firstMatchTime,m)
     }
 
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
@@ -68,11 +70,12 @@ class GenericEMTrainRealTennisResultsTest {
     println(trainedParams.transitionProb.map(e => e.formatted("%.4f")).toList)
   }
 
-  private def toResult(m: MatchComposite): Result = {
+   private def toResult(firstMatchTime: Long, m: MatchComposite): Result = {
 
     val timeDate = new DateTime(m.tournament.tournamentTime)
-    val timeSlice =  if(timeDate.getWeekOfWeekyear()==53) 0 else timeDate.getWeekOfWeekyear() //53 - last week of the previous year
- 
+    val durationSinceFirstMatch = new Duration(timeDate.getMillis() - firstMatchTime).getStandardDays() / 7
+    val timeSlice = durationSinceFirstMatch.toInt
+
     val playerAName = m.matchFacts.playerAFacts.playerName
     val playerBName = m.matchFacts.playerBFacts.playerName
     val playerAWinner = m.matchFacts.winner.equals(m.matchFacts.playerAFacts.playerName)

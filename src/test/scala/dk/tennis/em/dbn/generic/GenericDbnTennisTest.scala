@@ -27,18 +27,59 @@ class GenericDbnTennisTest {
 
   val emissionProbForPlayerAWon = List(0.5000, 0.0000, 0.3333, 0.0000, 0.2500, 0.0000, 0.6667, 0.0000, 0.5000, 0.0000, 0.4000, 0.0000, 0.7500, 0.0000, 0.6000, 0.0000, 0.5000, 0.0000)
 
+  val emissionProbForPlayerALost = List(0.0000, 0.5000, 0.0000, 0.6667, 0.0000, 0.7500, 0.0000, 0.3333, 0.0000, 0.5000, 0.0000, 0.6000, 0.0000, 0.2500, 0.0000, 0.4000, 0.0000, 0.5000)
+
   private val dbnTennis = new GenericDbnTennis(priorProb, emissionProb, transitionProb)
 
   /**
    * Tests for addResult.
    */
-  @Test(expected = classOf[IllegalArgumentException]) def addResult_duplicate {
+  @Test def addResult_duplicate {
     dbnTennis.addResult(Result("playerA", "playerB", true, 4))
     dbnTennis.addResult(Result("playerA", "playerB", true, 4))
+
+    val factors = dbnTennis.getFactors()
+
+    assertEquals(4, factors.size)
+
+    assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(0))
+    assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
+
+    val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
+      emissionProbForPlayerAWon: _*)
+
+    assertEquals(emmissionFactorAB.variables, factors(2).variables)
+    vectorAssert(emmissionFactorAB.values, factors(2).values, 0.0001)
+
+    val emmissionFactorAB2 = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
+      emissionProbForPlayerAWon: _*)
+
+    assertEquals(emmissionFactorAB2.variables, factors(3).variables)
+    vectorAssert(emmissionFactorAB2.values, factors(3).values, 0.0001)
   }
-  @Test(expected = classOf[IllegalArgumentException]) def addResult_duplicate2 {
+  @Test def addResult_duplicate2 {
     dbnTennis.addResult(Result("playerA", "playerB", true, 4))
     dbnTennis.addResult(Result("playerA", "playerB", false, 4))
+
+    val factors = dbnTennis.getFactors()
+
+    assertEquals(4, factors.size)
+
+    assertEquals(Factor(Var("playerA_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(0))
+    assertEquals(Factor(Var("playerB_rating_4", ("1", "2", "3")), 0.2, 0.5, 0.3), factors(1))
+
+    val emmissionFactorAB = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
+      emissionProbForPlayerAWon: _*)
+
+    assertEquals(emmissionFactorAB.variables, factors(2).variables)
+    vectorAssert(emmissionFactorAB.values, factors(2).values, 0.0001)
+
+    val emmissionFactorAB2 = Factor(Var("playerA_rating_4", ("1", "2", "3")), Var("playerB_rating_4", ("1", "2", "3")), Var("score_playerA_playerB_4", ("w", "l")),
+      emissionProbForPlayerALost: _*)
+
+    assertEquals(emmissionFactorAB2.variables, factors(3).variables)
+    vectorAssert(emmissionFactorAB2.values, factors(3).values, 0.0001)
+
   }
 
   @Test(expected = classOf[IllegalArgumentException]) def addResult_from_the_past {
@@ -46,10 +87,14 @@ class GenericDbnTennisTest {
     dbnTennis.addResult(Result("playerC", "playerD", false, 4))
   }
 
-  @Test(expected = classOf[IllegalArgumentException]) def addResult_AB_BA_AB {
+  @Test def addResult_AB_BA_AB {
     dbnTennis.addResult(Result("playerA", "playerB", true, 5))
     dbnTennis.addResult(Result("playerB", "playerA", false, 5))
     dbnTennis.addResult(Result("playerA", "playerB", false, 5))
+
+    val factors = dbnTennis.getFactors()
+
+    assertEquals(5, factors.size)
   }
 
   @Test def addResult_AB_BA {
@@ -78,13 +123,14 @@ class GenericDbnTennisTest {
   /**
    * Tests for getFactors - check prior and emission factors.
    */
-  @Test(expected = classOf[IllegalArgumentException]) def addToFactors_single_result_duplicate {
+  @Test def addToFactors_single_result_duplicate {
     dbnTennis.addResult(Result("playerA", "playerB", true, 4))
     val factors = dbnTennis.getFactors()
 
     assertEquals(3, factors.size)
     dbnTennis.addResult(Result("playerA", "playerB", true, 4))
 
+    assertEquals(4, dbnTennis.getFactors().size)
   }
 
   @Test def addToFactors_single_result {

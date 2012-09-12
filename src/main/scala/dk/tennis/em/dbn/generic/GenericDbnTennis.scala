@@ -54,9 +54,6 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
    */
   def addResult(result: Result) {
 
-    require(results.find(r => r.playerA.equals(result.playerA) && r.playerB.equals(result.playerB) &&
-      r.timeSlice == result.timeSlice).isEmpty, "Result already exists: %s".format(result))
-
     if (!results.isEmpty) {
       val maxTimeSlice = results.map(r => r.timeSlice).max
       require(result.timeSlice >= maxTimeSlice,

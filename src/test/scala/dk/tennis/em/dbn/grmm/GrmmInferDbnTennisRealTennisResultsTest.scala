@@ -9,6 +9,7 @@ import dk.atp.api.CSVATPMatchesLoader
 import dk.atp.api.domain.MatchComposite
 import dk.atp.api.domain.SurfaceEnum._
 import org.joda.time.DateTime
+import org.joda.time.Duration
 
 class GrmmInferDbnTennisRealTennisResultsTest {
 
@@ -36,31 +37,33 @@ class GrmmInferDbnTennisRealTennisResultsTest {
 
     val atpMatchesLoader = CSVATPMatchesLoader.fromCSVFile("./src/test/resources/match_data_2010_2011.csv")
     val matches: Seq[MatchComposite] = (2010 to 2010).flatMap(year => atpMatchesLoader.loadMatches(year))
-    val filteredMatches = matches.filter(m => m.tournament.surface == HARD && m.tournament.numOfSet == 2)
+    val filteredMatches = matches.filter(m => m.tournament.surface == HARD && m.tournament.numOfSet == 2).take(200)
 
-    val results = for (m <- filteredMatches.take(200)) yield toResult(m)
+    val firstMatchTime = filteredMatches.head.tournament.tournamentTime.getTime()
+    val results = for (m <- filteredMatches) yield toResult(firstMatchTime, m)
 
     val inferDbnTennisdef = GrmmInferDbnTennisFactory().create(results, priorProb, emissionProb, transitionProb)
 
     assertEquals(149, inferDbnTennisdef.getRatingPriorProbabilities().size)
     assertEquals(200, inferDbnTennisdef.getScoreEmissionProbabilities().size)
-    assertEquals(186, inferDbnTennisdef.getRatingTransitionProbabilities().size)
+    assertEquals(163, inferDbnTennisdef.getRatingTransitionProbabilities().size)
 
     println(inferDbnTennisdef.getRatingPriorProbabilities()(76).map(e => e.formatted("%.4f")).toList)
     println(inferDbnTennisdef.getScoreEmissionProbabilities()(120).map(e => e.formatted("%.4f")).toList)
     println(inferDbnTennisdef.getRatingTransitionProbabilities()(140).map(e => e.formatted("%.4f")).toList)
 
-    assertEquals(-138.118, inferDbnTennisdef.logLikelihood(), 0.001)
+    assertEquals(-138.107, inferDbnTennisdef.logLikelihood(), 0.001)
 
-    vectorAssert(List(0.1198, 0.5317, 0.3485), inferDbnTennisdef.getRatingPriorProbabilities()(76), 0.0001)
-    vectorAssert(List(0.0442, 0.0000, 0.0549, 0.0000, 0.0201, 0.0000, 0.1802, 0.0000, 0.2521, 0.0000, 0.0982, 0.0000, 0.1131, 0.0000, 0.1688, 0.0000, 0.0685, 0.0000), inferDbnTennisdef.getScoreEmissionProbabilities()(120), 0.0001)
-    vectorAssert(List(0.0544, 0.0012, 0.0016, 0.0023, 0.4668, 0.0067, 0.0016, 0.0067, 0.4587), inferDbnTennisdef.getRatingTransitionProbabilities()(140), 0.0001)
+    vectorAssert(List(0.1197, 0.5317, 0.3486), inferDbnTennisdef.getRatingPriorProbabilities()(76), 0.0001)
+    vectorAssert(List(0.0441, 0.0000, 0.0549, 0.0000, 0.0200, 0.0000, 0.1802, 0.0000, 0.2521, 0.0000, 0.0982, 0.0000, 0.1131, 0.0000, 0.1688, 0.0000, 0.0685, 0.0000), inferDbnTennisdef.getScoreEmissionProbabilities()(120), 0.0001)
+    vectorAssert(List(0.3306, 0.0026, 0.0021, 0.0061, 0.4630, 0.0038, 0.0030, 0.0047, 0.1840), inferDbnTennisdef.getRatingTransitionProbabilities()(140), 0.0001)
   }
 
-  private def toResult(m: MatchComposite): Result = {
+  private def toResult(firstMatchTime: Long, m: MatchComposite): Result = {
 
     val timeDate = new DateTime(m.tournament.tournamentTime)
-    val timeSlice = if (timeDate.getWeekOfWeekyear() == 53) 0 else timeDate.getWeekOfWeekyear() //53 - last week of the previous year
+    val durationSinceFirstMatch = new Duration(timeDate.getMillis() - firstMatchTime).getStandardDays() / 7
+    val timeSlice = durationSinceFirstMatch.toInt
 
     val playerAName = m.matchFacts.playerAFacts.playerName
     val playerBName = m.matchFacts.playerBFacts.playerName
