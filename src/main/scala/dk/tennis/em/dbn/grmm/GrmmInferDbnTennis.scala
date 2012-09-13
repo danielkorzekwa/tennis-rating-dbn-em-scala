@@ -69,5 +69,8 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: Fac
 
     factorProbabilities
   }
+  
+  /** @see InferDbnTennis*/
+  def getPlayerAWinningProb(playerA:String, playerB:String, t:Int):Double = 0.5
 
 }

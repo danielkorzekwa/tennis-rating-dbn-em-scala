@@ -56,6 +56,17 @@ class GrmmInferDbnTennisTest {
     vectorAssert(List(0.2611, 0.4972, 0.2415), priorProbs(2), 0.0001)
   }
 
+  @Test def getPriorRating_two_opposite_results_between_players_A_and_B_in_the_same_time_slice {
+    val results = List(Result("playerA", "playerB", true, 4), Result("playerA", "playerB", false, 4))
+
+    val priorProbs = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).getRatingPriorProbabilities()
+    assertEquals(2, priorProbs.size)
+
+    vectorAssert(List(0.1853, 0.5165, 0.2981), priorProbs(0), 0.0001)
+    vectorAssert(List(0.1853, 0.5165, 0.2981), priorProbs(1), 0.0001)
+
+  }
+
   @Test def getPriorRating_AB_in_time_4_AC_in_time_5 {
     val results = List(Result("playerA", "playerB", true, 4), Result("playerA", "playerC", true, 5))
 
@@ -180,5 +191,12 @@ class GrmmInferDbnTennisTest {
 
     val loglikelihood = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).logLikelihood()
     assertEquals(-2.0499, loglikelihood, 0.0001)
+  }
+  
+   @Test def loglikelihood__AB_in_time_8_BC_in_time_9_AC_in_time_10_all_results_unknown {
+    val results = List(Result("playerA", "playerB", None, 8), Result("playerB", "playerC", None, 9), Result("playerA", "playerC", None, 10))
+
+    val loglikelihood = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).logLikelihood()
+    assertEquals(0, loglikelihood, 0.0001)
   }
 }

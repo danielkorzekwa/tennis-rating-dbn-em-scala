@@ -6,9 +6,8 @@ import dk.tennis.em.dbn._
 import InferDbnTennis.Result
 import dk.tennis.em.util.VectorAssert._
 
-
 class GenericInferDbnTennisTest {
- private val priorProb = List(0.2, 0.5, 0.3)
+  private val priorProb = List(0.2, 0.5, 0.3)
 
   private val emissionProb = List(
     0.5, 0.5,
@@ -23,9 +22,8 @@ class GenericInferDbnTennisTest {
 
   private val transitionProb = List(0.98, 0.01, 0.01, 0.01, 0.98, 0.01, 0.01, 0.02, 0.97)
 
-  def createInferDbnTennis(results: Seq[Result], priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]): InferDbnTennis = 
-    GenericInferDbnTennisFactory().create(results,priorProb,emissionProb,transitionProb)
-  
+  def createInferDbnTennis(results: Seq[Result], priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]): InferDbnTennis =
+    GenericInferDbnTennisFactory().create(results, priorProb, emissionProb, transitionProb)
 
   /**
    * Tests for getPriorRating
@@ -55,6 +53,17 @@ class GenericInferDbnTennisTest {
     vectorAssert(List(0.0904, 0.4909, 0.4185), priorProbs(0), 0.0001)
     vectorAssert(List(0.2611, 0.4972, 0.2415), priorProbs(1), 0.0001)
     vectorAssert(List(0.2611, 0.4972, 0.2415), priorProbs(2), 0.0001)
+  }
+
+  @Test def getPriorRating_two_opposite_results_between_players_A_and_B_in_the_same_time_slice {
+    val results = List(Result("playerA", "playerB", true, 4), Result("playerA", "playerB", false, 4))
+
+    val priorProbs = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).getRatingPriorProbabilities()
+    assertEquals(2, priorProbs.size)
+
+    vectorAssert(List(0.18582, 0.5160, 0.2981), priorProbs(0), 0.0001)
+    vectorAssert(List(0.1858, 0.5160, 0.2981), priorProbs(1), 0.0001)
+
   }
 
   @Test def getPriorRating_AB_in_time_4_AC_in_time_5 {

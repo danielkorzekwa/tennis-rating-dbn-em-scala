@@ -47,6 +47,8 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
   /**Seq[Tuple2[variable, variable assignment index]]*/
   private val evidenceVariables: ListBuffer[Tuple2[Var, Int]] = ListBuffer()
 
+  /**All score variables must be uniquely identified. */
+  private var scoreIndex=0
   /**
    * Add tennis result between two tennis players to dynamic bayesian network.
    * @param result
@@ -117,7 +119,8 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
     val playerAVar = createPlayerVariable(result.playerA, result.timeSlice)
     val playerBVar = createPlayerVariable(result.playerB, result.timeSlice)
 
-    val scoreVarName = "score_%s_%s_%d".format(result.playerA, result.playerB, result.timeSlice)
+    val scoreVarName = "score_%s_%s_%d_%d".format(result.playerA, result.playerB, result.timeSlice,scoreIndex)
+    scoreIndex += 1
     val scoreVar = Var(scoreVarName, ("w", "l"))
 
     val emissionFactor = Factor(

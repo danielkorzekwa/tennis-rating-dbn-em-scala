@@ -14,8 +14,8 @@ case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
 
     val priorFactors = marginalizeFactors(factors, 1)
 
-    val emissionProbs = priorFactors.map(f => f.values)
-    emissionProbs
+    val priorProbs = priorFactors.map(f => f.values)
+    priorProbs
 
   }
 
@@ -33,8 +33,8 @@ case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
 
     val transitionFactors = marginalizeFactors(factors, 2)
 
-    val emissionProbs = transitionFactors.map(f => f.values)
-    emissionProbs
+    val transitionProbs = transitionFactors.map(f => f.values)
+    transitionProbs
 
   }
 
@@ -51,5 +51,8 @@ case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
     marginalsWithEvidence
 
   }
+  
+  /** @see InferDbnTennis*/
+  def getPlayerAWinningProb(playerA:String, playerB:String, t:Int):Double = throw new UnsupportedOperationException("Not implemented yet.")
 
 }

@@ -72,5 +72,8 @@ trait InferDbnTennis {
   
   /**Calculates log likelihood of a dbn network.*/
   def logLikelihood():Double
+  
+  /** Returns probability of player A winning against player B in a time slice t*/
+  def getPlayerAWinningProb(playerA:String, playerB:String, t:Int):Double
 
 }
