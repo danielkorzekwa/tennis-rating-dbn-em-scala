@@ -22,31 +22,24 @@ case class GrmmInferDbnTennisFactory extends InferDbnTennisFactory {
 
     val dbnTennisWithEvidence = toDBNTennis(results, priorProb, emissionProb, transitionProb)
     val dbnTennisWithoutEvidence = toDBNTennis(results.map(r => r.copy(playerAWinner = None)), priorProb, emissionProb, transitionProb)
-    
+
     /**Map[variableId,variable]*/
     val grmmVariablesMap: Map[String, Variable] = toGrmmVariables(dbnTennisWithEvidence.getFactors())
+
+    val resultsVariables = dbnTennisWithEvidence.getResultVariables().mapValues(v => grmmVariablesMap(v.name))
 
     val inferDbnTennis = GrmmInferDbnTennis(
       toGrmmFactorGraph(dbnTennisWithEvidence.getFactors(), grmmVariablesMap),
       toGrmmFactorGraph(dbnTennisWithoutEvidence.getFactors(), grmmVariablesMap),
-      toEvidence(dbnTennisWithEvidence.getEvidenceVariables(), grmmVariablesMap))
-      
-      inferDbnTennis.computeMarginals()
-      inferDbnTennis
+      resultsVariables)
+
+    inferDbnTennis.computeMarginals()
+    inferDbnTennis
   }
 
   private def toGrmmFactor(factor: Factor, grmmVariablesMap: Map[String, Variable]): LogTableFactor = {
     val variables = factor.variables.map(v => grmmVariablesMap(v.name)).toArray
     LogTableFactor.makeFromValues(variables, factor.values.toArray)
-  }
-
-  private def toEvidence(evidenceVariables: Seq[Tuple2[Var, Int]], grmmVariablesMap: Map[String, Variable]): Seq[Assignment] = {
-    val assignments = evidenceVariables.map {
-      case (evidenceVar, assignmentIndex) =>
-        val grmmVar = grmmVariablesMap(evidenceVar.name)
-        new Assignment(grmmVar, assignmentIndex)
-    }
-    assignments
   }
 
   private def toGrmmVariables(factors: Seq[Factor]): Map[String, Variable] = Map(factors.flatMap(_.variables).map(v => v.name -> new Variable(v.values.size)): _*)

@@ -2,6 +2,7 @@ package dk.tennis.em.dbn.generic
 
 import dk.tennis.em.EMTrain._
 import scala.collection.mutable.ListBuffer
+import scala.collection._
 import dk.tennis.em.dbn.InferDbnTennis._
 import dk.tennis.em.bn.Factor
 import Factor._
@@ -44,11 +45,10 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
   private val results: ListBuffer[Result] = ListBuffer()
   private val factors: ListBuffer[Factor] = ListBuffer()
 
-  /**Seq[Tuple2[variable, variable assignment index]]*/
-  private val evidenceVariables: ListBuffer[Tuple2[Var, Int]] = ListBuffer()
+  private val resultVariables: mutable.Map[Result, Var] = mutable.Map()
 
   /**All score variables must be uniquely identified. */
-  private var scoreIndex=0
+  private var scoreIndex = 0
   /**
    * Add tennis result between two tennis players to dynamic bayesian network.
    * @param result
@@ -82,7 +82,7 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
   /**Returns underlying list of factors for dynamic bayesian network.*/
   def getFactors(): List[Factor] = factors.toList
 
-  def getEvidenceVariables(): Seq[Tuple2[Var, Int]] = evidenceVariables.toList
+  def getResultVariables(): immutable.Map[Result, Var] = resultVariables.toMap
 
   /**Add  player factor to factor list if not exist yet (either prior or transition factor)*/
   private def addPlayerFactor(playerName: String, timeSlice: Int) = {
@@ -119,7 +119,7 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
     val playerAVar = createPlayerVariable(result.playerA, result.timeSlice)
     val playerBVar = createPlayerVariable(result.playerB, result.timeSlice)
 
-    val scoreVarName = "score_%s_%s_%d_%d".format(result.playerA, result.playerB, result.timeSlice,scoreIndex)
+    val scoreVarName = "score_%s_%s_%d_%d".format(result.playerA, result.playerB, result.timeSlice, scoreIndex)
     scoreIndex += 1
     val scoreVar = Var(scoreVarName, ("w", "l"))
 
@@ -132,12 +132,11 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
     if (result.playerAWinner.isDefined) {
       val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName, booleanToString(result.playerAWinner.get)))
       factors += emissionFactorWithEvidence
-
-      val assignmentIndex = if (result.playerAWinner.get) 0 else 1
-      evidenceVariables += scoreVar -> assignmentIndex
     } else {
       factors += emissionFactor
     }
+
+    resultVariables += result -> scoreVar
 
   }
 

@@ -192,11 +192,31 @@ class GrmmInferDbnTennisTest {
     val loglikelihood = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).logLikelihood()
     assertEquals(-2.0499, loglikelihood, 0.0001)
   }
-  
-   @Test def loglikelihood__AB_in_time_8_BC_in_time_9_AC_in_time_10_all_results_unknown {
+
+  @Test def loglikelihood__AB_in_time_8_BC_in_time_9_AC_in_time_10_all_results_unknown {
     val results = List(Result("playerA", "playerB", None, 8), Result("playerB", "playerC", None, 9), Result("playerA", "playerC", None, 10))
 
     val loglikelihood = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).logLikelihood()
     assertEquals(0, loglikelihood, 0.0001)
   }
+
+  /**Tests for getPlayerAWinningProb.*/
+  @Test def getPlayerAWinningProb {
+    val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
+
+    val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
+
+    assertEquals(1, inferDbnTennis.getPlayerAWinningProb("playerA", "playerB", 8), 0.0001)
+    assertEquals(0, inferDbnTennis.getPlayerAWinningProb("playerB", "playerC", 9), 0.0001)
+    assertEquals(0.4987, inferDbnTennis.getPlayerAWinningProb("playerA", "playerC", 10), 0.0001)
+  }
+
+  @Test(expected = classOf[NoSuchElementException]) def getPlayerAWinningProb_no_result_variable_exists {
+    val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
+
+    val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
+
+    inferDbnTennis.getPlayerAWinningProb("playerA", "playerD", 8)
+  }
+
 }

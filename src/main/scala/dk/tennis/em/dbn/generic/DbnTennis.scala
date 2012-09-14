@@ -29,7 +29,9 @@ trait DbnTennis {
   /**Returns results.*/
   def getResults():List[Result]
   
-  /**return Seq[Tuple2[evidence variable, variable assignment index]]*/
-  def getEvidenceVariables():Seq[Tuple2[Var,Int]]
+  /**Returns the mapping between results and result variables in a factor graph.
+   * It allows for calculating the winning probability of a tennis match by a tennis player. 
+   */
+  def getResultVariables():Map[Result,Var]
 
 }

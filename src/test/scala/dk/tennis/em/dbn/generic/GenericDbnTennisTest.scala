@@ -343,24 +343,31 @@ class GenericDbnTennisTest {
    * Tests for getEvidenceVariables
    */
   @Test def getEvidenceVariables_no_results {
-    assertEquals(Nil, dbnTennis.getEvidenceVariables())
+    assertEquals(Map(), dbnTennis.getResultVariables())
   }
 
   @Test def getEvidenceVariables_one_unkown_result {
     dbnTennis.addResult(Result("playerA", "playerB", None, 1))
-    assertEquals(Nil, dbnTennis.getEvidenceVariables())
+
+    val resultVariables = Map(Result("playerA", "playerB", None, 1) -> Var("score_playerA_playerB_1_0", List("w", "l")))
+    assertEquals(resultVariables, dbnTennis.getResultVariables())
   }
 
-  @Test def getEvidenceVariables_one_known_result_and_one_unkown_result {
+  @Test def getEvidenceVariables_one_known_result {
     dbnTennis.addResult(Result("playerA", "playerB", false, 1))
-    assertEquals(List(Var("score_playerA_playerB_1_0", ("w", "l")) -> 1), dbnTennis.getEvidenceVariables())
+
+    val resultVariables = Map(Result("playerA", "playerB", Some(false), 1) -> Var("score_playerA_playerB_1_0", List("w", "l")))
+    assertEquals(resultVariables, dbnTennis.getResultVariables())
   }
 
   @Test def getEvidenceVariables_two_known_results {
     dbnTennis.addResult(Result("playerA", "playerB", false, 1))
     dbnTennis.addResult(Result("playerB", "playerC", true, 3))
-    assertEquals(
-      Var("score_playerA_playerB_1_0", ("w", "l")) -> 1 ::
-        Var("score_playerB_playerC_3_1", ("w", "l")) -> 0 :: Nil, dbnTennis.getEvidenceVariables())
+
+    val resultVariables = Map(
+      Result("playerA", "playerB", Some(false), 1) -> Var("score_playerA_playerB_1_0", List("w", "l")),
+      Result("playerB", "playerC", Some(true), 3) -> Var("score_playerB_playerC_3_1", List("w", "l")))
+
+    assertEquals(resultVariables, dbnTennis.getResultVariables())
   }
 }

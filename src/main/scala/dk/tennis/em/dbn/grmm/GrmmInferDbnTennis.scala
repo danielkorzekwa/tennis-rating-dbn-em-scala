@@ -14,6 +14,7 @@ import edu.umass.cs.mallet.grmm.inference.TreeBP
 import edu.umass.cs.mallet.grmm.inference.BruteForceInferencer
 import edu.umass.cs.mallet.grmm.types.AbstractTableFactor
 import edu.umass.cs.mallet.grmm.inference.LoopyBP
+import dk.tennis.em.dbn.InferDbnTennis._
 
 /**
  * Inference engine based on Mallet GRMM toolkit (http://mallet.cs.umass.edu/grmm/index.php)
@@ -25,7 +26,7 @@ import edu.umass.cs.mallet.grmm.inference.LoopyBP
  * @evidence Evidence representing results for tennis matches
  *
  */
-case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: FactorGraph, evidence: Seq[Assignment]) extends InferDbnTennis {
+case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: FactorGraph, resultVariables: Map[Result, Variable]) extends InferDbnTennis {
 
   private val inferencer = new LoopyBP()
 
@@ -44,7 +45,13 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: Fac
   def logLikelihood(): Double = {
     val variables = factorGraph.variablesSet().map(v => v.asInstanceOf[Variable]).toArray
     val assignment = new Assignment(variables, variables.map(v => 0))
-    evidence.foreach(e => assignment.setValues(e))
+    
+    /**Set assignment for evidence variables*/
+    resultVariables.filter { case (r, v) => r.playerAWinner.isDefined }.foreach {
+      case (r, v) =>
+        val evidenceAssignment = new Assignment(v, if (r.playerAWinner.get) 0 else 1)
+        assignment.setValues(evidenceAssignment)
+    }
 
     val posteriorLogLikelihood = inferencer.lookupLogJoint(assignment)
     val productLogLikelihood = originalFactorGraph.logProduct(assignment)
@@ -69,8 +76,12 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: Fac
 
     factorProbabilities
   }
-  
+
   /** @see InferDbnTennis*/
-  def getPlayerAWinningProb(playerA:String, playerB:String, t:Int):Double = 0.5
+  def getPlayerAWinningProb(playerA: String, playerB: String, t: Int): Double = {
+    val (result,variable) = resultVariables.find{case (r,v) => r.playerA.equals(playerA) && r.playerB.equals(playerB) && r.timeSlice==t}.get
+    val marginalFactor = inferencer.lookupMarginal(variable).asInstanceOf[AbstractTableFactor]
+    marginalFactor.value(0)
+  }
 
 }
