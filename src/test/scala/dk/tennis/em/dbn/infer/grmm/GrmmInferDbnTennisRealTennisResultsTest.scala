@@ -1,15 +1,15 @@
-package dk.tennis.em.dbn.grmm
+package dk.tennis.em.dbn.infer.grmm
 
 import org.junit._
 import Assert._
-import dk.tennis.em.dbn.InferDbnTennis
-import InferDbnTennis.Result
+import dk.tennis.em.dbn.infer.InferDbnTennis
 import dk.tennis.em.util.VectorAssert._
 import dk.atp.api.CSVATPMatchesLoader
 import dk.atp.api.domain.MatchComposite
 import dk.atp.api.domain.SurfaceEnum._
 import org.joda.time.DateTime
 import org.joda.time.Duration
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 class GrmmInferDbnTennisRealTennisResultsTest {
 

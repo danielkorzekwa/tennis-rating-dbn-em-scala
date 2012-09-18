@@ -1,4 +1,4 @@
-package dk.tennis.em.dbn.generic
+package dk.tennis.em.dbn.factorgraph
 
 import org.junit._
 import Assert._
@@ -6,7 +6,7 @@ import dk.tennis.em.EMTrain._
 import dk.tennis.em.bn.Factor
 import Factor._
 import dk.tennis.em.util.VectorAssert._
-import dk.tennis.em.dbn.InferDbnTennis._
+import DbnTennis._
 
 class GenericDbnTennisTest {
 

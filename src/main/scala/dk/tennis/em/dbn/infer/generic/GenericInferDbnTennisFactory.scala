@@ -1,8 +1,9 @@
-package dk.tennis.em.dbn.generic
+package dk.tennis.em.dbn.infer.generic
 
 import dk.tennis.em.dbn._
-import dk.tennis.em.dbn.InferDbnTennis._
-import dk.tennis.em.dbn.InferDbnTennisFactory
+import factorgraph.GenericDbnTennis
+import infer._
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 case class GenericInferDbnTennisFactory extends InferDbnTennisFactory {
 

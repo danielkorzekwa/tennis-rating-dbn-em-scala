@@ -5,12 +5,12 @@ import Assert._
 import dk.atp.api.CSVATPMatchesLoader
 import dk.atp.api.domain.MatchComposite
 import dk.atp.api.domain.SurfaceEnum._
-import dbn.grmm.GrmmInferDbnTennisFactory
+import dbn.infer.grmm.GrmmInferDbnTennisFactory
 import EMTrain.Params
-import dbn.InferDbnTennis._
 import scala.util.Random
 import org.joda.time.DateTime
 import org.joda.time.Duration
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 class GenericEMTrainRealTennisResultsTest {
 

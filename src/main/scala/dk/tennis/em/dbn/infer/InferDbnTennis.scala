@@ -1,4 +1,4 @@
-package dk.tennis.em.dbn
+package dk.tennis.em.dbn.infer
 
 import dk.tennis.em.bn.Factor
 
@@ -6,13 +6,6 @@ import dk.tennis.em.bn.Factor
  * Performs bayesian inference in dynamic bayesian network representing tennis players and matches over the time.
  *
  */
-object InferDbnTennis {
- object Result {
-   def apply(playerA: String, playerB: String,playerAWinner:Boolean,timeSlice: Int):Result = 
-     Result(playerA,playerB,Option(playerAWinner),timeSlice)
- }  
- case class Result(playerA: String, playerB: String, playerAWinner: Option[Boolean], timeSlice: Int)
-}
 trait InferDbnTennis {
 
   /**
@@ -75,5 +68,9 @@ trait InferDbnTennis {
   
   /** Returns probability of player A winning against player B in a time slice t*/
   def getPlayerAWinningProb(playerA:String, playerB:String, t:Int):Double
+  
+  /**@return Probabilities of rating values, e.g. The list [0.2,0.5,0.6] represents probabilities for rating values [1,2,3]
+   */
+  def getPlayerRating(playerName:String,timeSlice:Int):Seq[Double]
 
 }

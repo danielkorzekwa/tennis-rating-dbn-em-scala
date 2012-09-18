@@ -3,10 +3,11 @@ package dk.tennis.em
 import EMTrain._
 import scala.annotation.tailrec
 import dbn._
-import dbn.InferDbnTennis._
-import dk.tennis.em.dbn.generic.GenericInferDbnTennis
+import dk.tennis.em.dbn.infer._
+import dk.tennis.em.dbn.infer.generic.GenericInferDbnTennis
 import GenericEMTrain._
-import generic.GenericDbnTennis
+import factorgraph.GenericDbnTennis
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 /**
  * @see EMTrain

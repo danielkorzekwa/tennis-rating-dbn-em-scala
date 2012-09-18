@@ -1,7 +1,8 @@
-package dk.tennis.em.dbn.generic
+package dk.tennis.em.dbn.infer.generic
 import dk.tennis.em.bn.Factor
 import scala.Math._
 import dk.tennis.em.dbn._
+import infer.InferDbnTennis
 
 case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
 
@@ -55,4 +56,6 @@ case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
   /** @see InferDbnTennis*/
   def getPlayerAWinningProb(playerA:String, playerB:String, t:Int):Double = throw new UnsupportedOperationException("Not implemented yet.")
 
+  /** @see InferDbnTennis*/
+  def getPlayerRating(playerName:String,timeSlice:Int):Seq[Double]  = throw new UnsupportedOperationException("Not implemented yet.")
 }

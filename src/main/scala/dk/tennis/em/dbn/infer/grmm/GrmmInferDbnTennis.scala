@@ -1,5 +1,5 @@
-package dk.tennis.em.dbn.grmm
-import dk.tennis.em.dbn.InferDbnTennis
+package dk.tennis.em.dbn.infer.grmm
+
 import edu.umass.cs.mallet.grmm.types.FactorGraph
 import edu.umass.cs.mallet.grmm.inference.JunctionTreeInferencer
 import scala.collection.JavaConversions._
@@ -14,7 +14,8 @@ import edu.umass.cs.mallet.grmm.inference.TreeBP
 import edu.umass.cs.mallet.grmm.inference.BruteForceInferencer
 import edu.umass.cs.mallet.grmm.types.AbstractTableFactor
 import edu.umass.cs.mallet.grmm.inference.LoopyBP
-import dk.tennis.em.dbn.InferDbnTennis._
+import dk.tennis.em.dbn.infer._
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 /**
  * Inference engine based on Mallet GRMM toolkit (http://mallet.cs.umass.edu/grmm/index.php)
@@ -84,4 +85,6 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: Fac
     marginalFactor.value(0)
   }
 
+  /** @see InferDbnTennis*/
+  def getPlayerRating(playerName:String,timeSlice:Int):Seq[Double]  = throw new UnsupportedOperationException("Not implemented yet.")
 }

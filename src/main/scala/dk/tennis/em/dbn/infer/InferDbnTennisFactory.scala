@@ -1,6 +1,6 @@
-package dk.tennis.em.dbn
+package dk.tennis.em.dbn.infer
 
-import InferDbnTennis._
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 /**
  * Creates inference engine for tennis dbn network.
@@ -12,9 +12,9 @@ trait InferDbnTennisFactory {
   /**
    *
    * @param results Results of tennis matches.
-   * 
+   *
    * @param  priorProb For example 0.2 0.5 0.3 //three rating values: 0,1,2 with prior probabilities 0.2 0.5 0.3 respectively.
-   * 
+   *
    * @param emissionProb Tennis match score (Emission probabilities, 18 values) specified in the following order:
    *
    * playerA_rating, playeB_rating, win/lose

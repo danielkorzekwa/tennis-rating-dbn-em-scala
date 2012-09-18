@@ -1,4 +1,4 @@
-package dk.tennis.em.dbn.grmm
+package dk.tennis.em.dbn.infer.grmm
 
 import org.junit._
 import Assert._

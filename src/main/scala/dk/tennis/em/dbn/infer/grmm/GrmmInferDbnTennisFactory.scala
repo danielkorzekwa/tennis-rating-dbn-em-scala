@@ -1,9 +1,7 @@
-package dk.tennis.em.dbn.grmm
+package dk.tennis.em.dbn.infer.grmm
 
 import dk.tennis.em.dbn._
-import dk.tennis.em.dbn.InferDbnTennis._
-import dk.tennis.em.dbn.InferDbnTennisFactory
-import generic.GenericDbnTennis
+import factorgraph.GenericDbnTennis
 import edu.umass.cs.mallet.grmm.types.FactorGraph
 import edu.umass.cs.mallet.grmm.types.Variable
 import edu.umass.cs.mallet.grmm.types.TableFactor
@@ -12,7 +10,9 @@ import scala.collection._
 import edu.umass.cs.mallet.grmm.types.LogTableFactor
 import edu.umass.cs.mallet.grmm.types.Assignment
 import dk.tennis.em.bn.Factor._
-import dk.tennis.em.dbn.generic.DbnTennis
+import dk.tennis.em.dbn.factorgraph.DbnTennis
+import infer._
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 case class GrmmInferDbnTennisFactory extends InferDbnTennisFactory {
 

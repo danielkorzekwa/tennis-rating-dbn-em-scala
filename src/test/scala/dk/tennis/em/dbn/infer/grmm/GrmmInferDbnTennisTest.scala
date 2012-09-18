@@ -1,12 +1,14 @@
-package dk.tennis.em.dbn.generic
+package dk.tennis.em.dbn.infer.grmm
 
 import org.junit._
 import Assert._
-import dk.tennis.em.dbn._
-import InferDbnTennis.Result
+import dk.tennis.em.dbn.infer.InferDbnTennis
 import dk.tennis.em.util.VectorAssert._
+import dk.tennis.em.dbn.infer.InferDbnTennis
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
-class GenericInferDbnTennisTest {
+class GrmmInferDbnTennisTest {
+
   private val priorProb = List(0.2, 0.5, 0.3)
 
   private val emissionProb = List(
@@ -23,7 +25,7 @@ class GenericInferDbnTennisTest {
   private val transitionProb = List(0.98, 0.01, 0.01, 0.01, 0.98, 0.01, 0.01, 0.02, 0.97)
 
   def createInferDbnTennis(results: Seq[Result], priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]): InferDbnTennis =
-    GenericInferDbnTennisFactory().create(results, priorProb, emissionProb, transitionProb)
+    GrmmInferDbnTennisFactory().create(results, priorProb, emissionProb, transitionProb)
 
   /**
    * Tests for getPriorRating
@@ -61,8 +63,8 @@ class GenericInferDbnTennisTest {
     val priorProbs = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).getRatingPriorProbabilities()
     assertEquals(2, priorProbs.size)
 
-    vectorAssert(List(0.18582, 0.5160, 0.2981), priorProbs(0), 0.0001)
-    vectorAssert(List(0.1858, 0.5160, 0.2981), priorProbs(1), 0.0001)
+    vectorAssert(List(0.1853, 0.5165, 0.2981), priorProbs(0), 0.0001)
+    vectorAssert(List(0.1853, 0.5165, 0.2981), priorProbs(1), 0.0001)
 
   }
 
@@ -189,6 +191,54 @@ class GenericInferDbnTennisTest {
     val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", true, 10))
 
     val loglikelihood = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).logLikelihood()
-    assertEquals(-2.0498, loglikelihood, 0.0001)
+    assertEquals(-2.0499, loglikelihood, 0.0001)
   }
+
+  @Test def loglikelihood__AB_in_time_8_BC_in_time_9_AC_in_time_10_all_results_unknown {
+    val results = List(Result("playerA", "playerB", None, 8), Result("playerB", "playerC", None, 9), Result("playerA", "playerC", None, 10))
+
+    val loglikelihood = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).logLikelihood()
+    assertEquals(0, loglikelihood, 0.0001)
+  }
+
+  /**Tests for getPlayerAWinningProb.*/
+  @Test def getPlayerAWinningProb {
+    val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
+
+    val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
+
+    assertEquals(1, inferDbnTennis.getPlayerAWinningProb("playerA", "playerB", 8), 0.0001)
+    assertEquals(0, inferDbnTennis.getPlayerAWinningProb("playerB", "playerC", 9), 0.0001)
+    assertEquals(0.4987, inferDbnTennis.getPlayerAWinningProb("playerA", "playerC", 10), 0.0001)
+  }
+
+  @Test(expected = classOf[NoSuchElementException]) def getPlayerAWinningProb_no_result_variable_exists {
+    val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
+
+    val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
+
+    inferDbnTennis.getPlayerAWinningProb("playerA", "playerD", 8)
+  }
+
+  /**Tests for getPlayerRating.*/
+  @Ignore @Test(expected = classOf[NoSuchElementException]) def getPlayerRating_player_not_found {
+    val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
+    val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
+    inferDbnTennis.getPlayerRating("wrong player", 9)
+  }
+
+  @Ignore @Test(expected = classOf[NoSuchElementException]) def getPlayerRating_player_not_found_player_not_found_in_a_time_slice {
+    val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
+    val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
+    inferDbnTennis.getPlayerRating("playerA", 11)
+  }
+
+  @Ignore @Test def getPlayerRating {
+    val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
+    val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
+    val playerRating = inferDbnTennis.getPlayerRating("playerA", 9)
+
+    vectorAssert(Nil, playerRating, 0.0001)
+  }
+
 }

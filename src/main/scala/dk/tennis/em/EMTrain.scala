@@ -1,7 +1,7 @@
 package dk.tennis.em
 
 import EMTrain._
-import dbn.InferDbnTennis._
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 /**
  * Learn parameters for Dynamic Bayesian Network, which models tennis ratings and match results over the time.

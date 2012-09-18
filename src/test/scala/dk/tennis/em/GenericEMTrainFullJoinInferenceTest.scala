@@ -4,9 +4,9 @@ import org.junit._
 import Assert._
 import EMTrain._
 import dk.tennis.em.util.VectorAssert._
-import dk.tennis.em.dbn.InferDbnTennis._
-import dk.tennis.em.dbn.generic.GenericInferDbnTennisFactory
-import dk.tennis.em.dbn.grmm.GrmmInferDbnTennisFactory
+import dk.tennis.em.dbn.infer.generic.GenericInferDbnTennisFactory
+import dk.tennis.em.dbn.infer.grmm.GrmmInferDbnTennisFactory
+import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 class GenericEMTrainFullJoinInferenceTest {
 
