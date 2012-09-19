@@ -28,10 +28,16 @@ case class GrmmInferDbnTennisFactory extends InferDbnTennisFactory {
 
     val resultsVariables = dbnTennisWithEvidence.getResultVariables().mapValues(v => grmmVariablesMap(v.name))
 
+    val playerVariables: immutable.Map[Int,immutable.Map[String,Variable]] = dbnTennisWithEvidence.getPlayerVariables().mapValues{
+      timeSliceVariables =>
+        timeSliceVariables.mapValues(variable => grmmVariablesMap(variable.name))
+    }
+    
     val inferDbnTennis = GrmmInferDbnTennis(
       toGrmmFactorGraph(dbnTennisWithEvidence.getFactors(), grmmVariablesMap),
       toGrmmFactorGraph(dbnTennisWithoutEvidence.getFactors(), grmmVariablesMap),
-      resultsVariables)
+      resultsVariables,
+      playerVariables)
 
     inferDbnTennis.computeMarginals()
     inferDbnTennis

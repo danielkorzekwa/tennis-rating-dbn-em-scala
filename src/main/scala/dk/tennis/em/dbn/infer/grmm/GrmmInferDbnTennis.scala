@@ -24,10 +24,12 @@ import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
  *
  * @param factorGraph Factor graph with evidence applied
  * @param originalFactorGraph Factor graph without evidence applied
- * @evidence Evidence representing results for tennis matches
+ * @resultVariables Evidence representing results for tennis matches
+ * @playerVariables Mapping between timeSlice, playerName and Variable Map[time slice, Map[playerName, playerVariable]]
  *
  */
-case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: FactorGraph, resultVariables: Map[Result, Variable]) extends InferDbnTennis {
+case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: FactorGraph,
+  resultVariables: Map[Result, Variable], playerVariables: Map[Int, Map[String, Variable]]) extends InferDbnTennis {
 
   private val inferencer = new LoopyBP()
 
@@ -46,7 +48,7 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: Fac
   def logLikelihood(): Double = {
     val variables = factorGraph.variablesSet().map(v => v.asInstanceOf[Variable]).toArray
     val assignment = new Assignment(variables, variables.map(v => 0))
-    
+
     /**Set assignment for evidence variables*/
     resultVariables.filter { case (r, v) => r.playerAWinner.isDefined }.foreach {
       case (r, v) =>
@@ -80,11 +82,16 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: Fac
 
   /** @see InferDbnTennis*/
   def getPlayerAWinningProb(playerA: String, playerB: String, t: Int): Double = {
-    val (result,variable) = resultVariables.find{case (r,v) => r.playerA.equals(playerA) && r.playerB.equals(playerB) && r.timeSlice==t}.get
+    val (result, variable) = resultVariables.find { case (r, v) => r.playerA.equals(playerA) && r.playerB.equals(playerB) && r.timeSlice == t }.get
     val marginalFactor = inferencer.lookupMarginal(variable).asInstanceOf[AbstractTableFactor]
     marginalFactor.value(0)
   }
 
   /** @see InferDbnTennis*/
-  def getPlayerRating(playerName:String,timeSlice:Int):Seq[Double]  = throw new UnsupportedOperationException("Not implemented yet.")
+  def getPlayerRating(playerName: String, timeSlice: Int): Seq[Double] = {
+    val playerVariable = playerVariables(timeSlice)(playerName)
+    val playerMarginal = inferencer.lookupMarginal(playerVariable).asInstanceOf[AbstractTableFactor]
+    val ratingProbabilities = playerMarginal.getValues()
+    ratingProbabilities
+  }
 }

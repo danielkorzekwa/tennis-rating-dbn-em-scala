@@ -221,24 +221,24 @@ class GrmmInferDbnTennisTest {
   }
 
   /**Tests for getPlayerRating.*/
-  @Ignore @Test(expected = classOf[NoSuchElementException]) def getPlayerRating_player_not_found {
+  @Test(expected = classOf[NoSuchElementException]) def getPlayerRating_player_not_found {
     val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
     val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
     inferDbnTennis.getPlayerRating("wrong player", 9)
   }
 
-  @Ignore @Test(expected = classOf[NoSuchElementException]) def getPlayerRating_player_not_found_player_not_found_in_a_time_slice {
+  @Test(expected = classOf[NoSuchElementException]) def getPlayerRating_player_not_found_player_not_found_in_a_time_slice {
     val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
     val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
     inferDbnTennis.getPlayerRating("playerA", 11)
   }
 
-  @Ignore @Test def getPlayerRating {
+  @Test def getPlayerRating {
     val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
     val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
     val playerRating = inferDbnTennis.getPlayerRating("playerA", 9)
 
-    vectorAssert(Nil, playerRating, 0.0001)
+    vectorAssert(List(0.1442, 0.5021, 0.3535), playerRating, 0.0001)
   }
 
 }

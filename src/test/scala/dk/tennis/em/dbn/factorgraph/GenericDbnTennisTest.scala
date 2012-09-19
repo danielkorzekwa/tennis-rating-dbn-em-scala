@@ -370,4 +370,54 @@ class GenericDbnTennisTest {
 
     assertEquals(resultVariables, dbnTennis.getResultVariables())
   }
+
+  /**Tests for getPlayerVariables*/
+  @Test def getPlayerVariables_no_results {
+    val playerVariables = dbnTennis.getPlayerVariables()
+    val expectedVariables = Map()
+
+    assertEquals(expectedVariables, playerVariables)
+  }
+
+  @Test def getPlayerVariables_single_result {
+    dbnTennis.addResult(Result("playerA", "playerB", false, 1))
+
+    val playerVariables = dbnTennis.getPlayerVariables()
+
+    val timeSlice1Variables = Map(
+      "playerA" -> Var("playerA_rating_1", List("1", "2", "3")),
+      "playerB" -> Var("playerB_rating_1", List("1", "2", "3")))
+
+    val expectedVariables = Map(1 -> timeSlice1Variables)
+
+    assertEquals(expectedVariables, playerVariables)
+  }
+
+  @Test def getPlayerVariables_three_results_in_two_time_slices {
+    dbnTennis.addResult(Result("playerA", "playerB", false, 1))
+    dbnTennis.addResult(Result("playerB", "playerC", false, 3))
+    dbnTennis.addResult(Result("playerA", "playerC", false, 3))
+
+    val playerVariables = dbnTennis.getPlayerVariables()
+
+    val timeSlice1Variables = Map(
+      "playerA" -> Var("playerA_rating_1", List("1", "2", "3")),
+      "playerB" -> Var("playerB_rating_1", List("1", "2", "3")))
+
+    val timeSlice2Variables = Map(
+      "playerA" -> Var("playerA_rating_2", List("1", "2", "3")),
+      "playerB" -> Var("playerB_rating_2", List("1", "2", "3")))
+
+    val timeSlice3Variables = Map(
+      "playerA" -> Var("playerA_rating_3", List("1", "2", "3")),
+      "playerB" -> Var("playerB_rating_3", List("1", "2", "3")),
+      "playerC" -> Var("playerC_rating_3", List("1", "2", "3")))
+
+    assertEquals(3, playerVariables.keys.size)
+
+    assertEquals(timeSlice1Variables, playerVariables(1))
+    assertEquals(timeSlice2Variables, playerVariables(2))
+    assertEquals(timeSlice3Variables, playerVariables(3))
+  }
+
 }

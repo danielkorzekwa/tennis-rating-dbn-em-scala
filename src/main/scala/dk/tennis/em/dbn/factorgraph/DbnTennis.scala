@@ -43,4 +43,11 @@ trait DbnTennis {
    */
   def getResultVariables(): Map[Result, Var]
 
+  /**
+   * Returns variables for all players and all time slices.
+   *
+   * @return Map[time slice,Map[playerName,player variable]]
+   */
+  def getPlayerVariables(): Map[Int, Map[String, Var]]
+
 }
