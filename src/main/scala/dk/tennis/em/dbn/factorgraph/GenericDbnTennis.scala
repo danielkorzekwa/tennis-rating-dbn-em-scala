@@ -47,7 +47,7 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
   /**Map[time slice,Map[playerName,player variable]]*/
   private val playerVariables: mutable.Map[Int, mutable.Map[String, Var]] = mutable.Map()
 
-  private val resultVariables: mutable.Map[Result, Var] = mutable.Map()
+  private val resultVariables: mutable.ListBuffer[Tuple2[Result, Var]] = mutable.ListBuffer()
 
   /**All score variables must be uniquely identified. */
   private var scoreIndex = 0
@@ -58,8 +58,9 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
    */
   def addResult(result: Result) {
 
-    if (!resultVariables.keys.isEmpty) {
-      val maxTimeSlice = resultVariables.keys.map(r => r.timeSlice).max
+    val results = getResults()
+    if (!results.isEmpty) {
+      val maxTimeSlice = results.map(r => r.timeSlice).max
       require(result.timeSlice >= maxTimeSlice,
         "Adding result from the past is not permitted. Adding time slice: %d, the newest added time slice: %d.".format(result.timeSlice, maxTimeSlice))
     }
@@ -74,15 +75,15 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
    * Gets all player ids in a bayesian network.
    *
    */
-  def getPlayerIds(): List[String] = resultVariables.keys.toList.flatMap(r => r.playerA :: r.playerB :: Nil).distinct.toList
+  def getPlayerIds(): List[String] = getResults().flatMap(r => r.playerA :: r.playerB :: Nil).distinct.toList
 
   /**Returns results.*/
-  def getResults(): List[Result] = resultVariables.keys.toList
+  def getResults(): List[Result] = resultVariables.map(_._1).toList
 
   /**Returns underlying list of factors for dynamic bayesian network.*/
   def getFactors(): List[Factor] = factors.toList
 
-  def getResultVariables(): immutable.Map[Result, Var] = resultVariables.toMap
+  def getResultVariables(): Seq[Tuple2[Result, Var]] = resultVariables.toList
 
   /**@see DbnTennis*/
   def getPlayerVariables(): immutable.Map[Int, immutable.Map[String, Var]] = playerVariables.mapValues(timeSliceVariables => timeSliceVariables.toMap).toMap
@@ -90,7 +91,7 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
   /**Add  player factor to factor list if not exist yet (either prior or transition factor)*/
   private def addPlayerFactor(playerName: String, timeSlice: Int) = {
 
-    val prevTimeSlices = resultVariables.keys.filter(r => r.timeSlice < timeSlice && (r.playerA.equals(playerName) || r.playerB.equals(playerName))).map(r => r.timeSlice).toList
+    val prevTimeSlices = getResults().filter(r => r.timeSlice < timeSlice && (r.playerA.equals(playerName) || r.playerB.equals(playerName))).map(r => r.timeSlice).toList
 
     prevTimeSlices match {
       case Nil => addPlayerPriorFactor(playerName, timeSlice)
@@ -160,5 +161,6 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
     Var("%s_rating_%d".format(playerName, timeSlice), priorFactorValues)
   }
 
-  private def playerResultExists(playerName: String, timeSlice: Int): Boolean = resultVariables.keys.find(r => r.timeSlice == timeSlice && (r.playerA.equals(playerName) || r.playerB.equals(playerName))).isDefined
+  private def playerResultExists(playerName: String, timeSlice: Int): Boolean = getResults().find(r => r.timeSlice == timeSlice && (r.playerA.equals(playerName) || r.playerB.equals(playerName))).isDefined
+
 }

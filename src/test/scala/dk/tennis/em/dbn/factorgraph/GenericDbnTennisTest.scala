@@ -340,33 +340,44 @@ class GenericDbnTennisTest {
   }
 
   /**
-   * Tests for getEvidenceVariables
+   * Tests for getResultVariables
    */
-  @Test def getEvidenceVariables_no_results {
-    assertEquals(Map(), dbnTennis.getResultVariables())
+  @Test def getResultVariables_no_results {
+    assertEquals(List(), dbnTennis.getResultVariables())
   }
 
-  @Test def getEvidenceVariables_one_unkown_result {
+  @Test def getResultVariables_one_unkown_result {
     dbnTennis.addResult(Result("playerA", "playerB", None, 1))
 
-    val resultVariables = Map(Result("playerA", "playerB", None, 1) -> Var("score_playerA_playerB_1_0", List("w", "l")))
+    val resultVariables = List(Result("playerA", "playerB", None, 1) -> Var("score_playerA_playerB_1_0", List("w", "l")))
     assertEquals(resultVariables, dbnTennis.getResultVariables())
   }
 
-  @Test def getEvidenceVariables_one_known_result {
+  @Test def getResultVariables_one_known_result {
     dbnTennis.addResult(Result("playerA", "playerB", false, 1))
 
-    val resultVariables = Map(Result("playerA", "playerB", Some(false), 1) -> Var("score_playerA_playerB_1_0", List("w", "l")))
+    val resultVariables = List(Result("playerA", "playerB", Some(false), 1) -> Var("score_playerA_playerB_1_0", List("w", "l")))
     assertEquals(resultVariables, dbnTennis.getResultVariables())
   }
 
-  @Test def getEvidenceVariables_two_known_results {
+  @Test def getResultVariables_two_known_results {
     dbnTennis.addResult(Result("playerA", "playerB", false, 1))
     dbnTennis.addResult(Result("playerB", "playerC", true, 3))
 
-    val resultVariables = Map(
+    val resultVariables = List(
       Result("playerA", "playerB", Some(false), 1) -> Var("score_playerA_playerB_1_0", List("w", "l")),
       Result("playerB", "playerC", Some(true), 3) -> Var("score_playerB_playerC_3_1", List("w", "l")))
+
+    assertEquals(resultVariables, dbnTennis.getResultVariables())
+  }
+
+  @Test def getResultVariables_two_known_the_same_results {
+    dbnTennis.addResult(Result("playerA", "playerB", true, 1))
+    dbnTennis.addResult(Result("playerA", "playerB", true, 1))
+
+    val resultVariables = List(
+      Result("playerA", "playerB", Some(true), 1) -> Var("score_playerA_playerB_1_0", List("w", "l")),
+      Result("playerA", "playerB", Some(true), 1) -> Var("score_playerA_playerB_1_1", List("w", "l")))
 
     assertEquals(resultVariables, dbnTennis.getResultVariables())
   }
