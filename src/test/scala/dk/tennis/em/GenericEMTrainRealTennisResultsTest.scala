@@ -39,30 +39,30 @@ class GenericEMTrainRealTennisResultsTest {
     println("Log likelihood for iteration %d = %f".format(currentIter, logLikelihood))
   }
 
-  val iterNum = 5
+  val iterNum = 10
 
   @Test def emTrain_for_tennis_results_2010_and_2011 {
 
-    val atpMatchesLoader = CSVATPMatchesLoader.fromCSVFile("./src/test/resources/match_data_2010_2011.csv")
-    val matches: Seq[MatchComposite] = (2010 to 2010).flatMap(year => atpMatchesLoader.loadMatches(year))
+    val atpMatchesLoader = CSVATPMatchesLoader.fromCSVFile("./src/test/resources/match_data_2006_2011.csv")
+    val matches: Seq[MatchComposite] = (2008 to 2009).flatMap(year => atpMatchesLoader.loadMatches(year))
     val filteredMatches = matches.filter(m => m.tournament.surface == HARD && m.tournament.numOfSet == 2)
 
     val rand = new Random(System.currentTimeMillis())
-    val schuffledMatches = filteredMatches.map { m =>
-      rand.nextBoolean match {
+    val shuffledMatches = filteredMatches.map { m =>
+      rand.nextBoolean() match {
         case true => {
           val newMatchFacts = m.matchFacts.copy(playerAFacts = m.matchFacts.playerBFacts, playerBFacts = m.matchFacts.playerAFacts)
           m.copy(matchFacts = newMatchFacts)
         }
         case false => m
       }
-    }
+    }.toList.take(500)
 
-     val firstMatchTime = schuffledMatches.head.tournament.tournamentTime.getTime()
-    val results = for (m <- schuffledMatches.take(500)) yield {
-      toResult(firstMatchTime,m)
+    val firstMatchTime = shuffledMatches.head.tournament.tournamentTime.getTime()
+    val results = for (m <- shuffledMatches) yield {
+      toResult(firstMatchTime, m)
     }
-
+    println("Results size: " + results.size)
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     println(trainedParams.priorProb.map(e => e.formatted("%.4f")).toList)
@@ -70,10 +70,10 @@ class GenericEMTrainRealTennisResultsTest {
     println(trainedParams.transitionProb.map(e => e.formatted("%.4f")).toList)
   }
 
-   private def toResult(firstMatchTime: Long, m: MatchComposite): Result = {
+  private def toResult(firstMatchTime: Long, m: MatchComposite): Result = {
 
     val timeDate = new DateTime(m.tournament.tournamentTime)
-    val durationSinceFirstMatch = new Duration(timeDate.getMillis() - firstMatchTime).getStandardDays() / 7
+    val durationSinceFirstMatch = new Duration(timeDate.getMillis() - firstMatchTime).getStandardDays() / 30
     val timeSlice = durationSinceFirstMatch.toInt
 
     val playerAName = m.matchFacts.playerAFacts.playerName

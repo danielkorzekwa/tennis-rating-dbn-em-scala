@@ -6,6 +6,10 @@ import dk.tennis.em.dbn.infer.InferDbnTennis
 import dk.tennis.em.util.VectorAssert._
 import dk.tennis.em.dbn.infer.InferDbnTennis
 import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
+import edu.umass.cs.mallet.grmm.types.Variable
+import edu.umass.cs.mallet.grmm.types.TableFactor
+import edu.umass.cs.mallet.grmm.types.FactorGraph
+import edu.umass.cs.mallet.grmm.types.LogTableFactor
 
 class GrmmInferDbnTennisTest {
 
@@ -201,15 +205,28 @@ class GrmmInferDbnTennisTest {
     assertEquals(0, loglikelihood, 0.0001)
   }
 
+  @Test def loglikelihood_Gil_vs_Starace_the_same_result_twice {
+    val results = List(Result("Frederico Gil", "Potito Starace", Some(false), 0), Result("Frederico Gil", "Potito Starace", Some(false), 0))
+
+    val loglikelihood = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).logLikelihood()
+    assertEquals(-1.325, loglikelihood, 0.0001)
+  }
+
   /**Tests for getPlayerAWinningProb.*/
   @Test def getPlayerAWinningProb {
     val results = List(Result("playerA", "playerB", true, 8), Result("playerB", "playerC", false, 9), Result("playerA", "playerC", None, 10))
 
     val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
 
-    assertEquals(1, inferDbnTennis.getPlayerAWinningProb("playerA", "playerB", 8), 0.0001)
-    assertEquals(0, inferDbnTennis.getPlayerAWinningProb("playerB", "playerC", 9), 0.0001)
     assertEquals(0.4987, inferDbnTennis.getPlayerAWinningProb("playerA", "playerC", 10), 0.0001)
+  }
+
+  @Test def getPlayerAWinningProb_Federer_vs_Nadal {
+    val results = List(Result("Roger Federer", "Rafael Nadal", true, 0), Result("Roger Federer", "Rafael Nadal", None, 0))
+
+    val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
+
+    assertEquals(0.5320, inferDbnTennis.getPlayerAWinningProb("Roger Federer", "Rafael Nadal", 0), 0.0001)
   }
 
   @Test(expected = classOf[NoSuchElementException]) def getPlayerAWinningProb_no_result_variable_exists {
@@ -218,6 +235,31 @@ class GrmmInferDbnTennisTest {
     val inferDbnTennis = createInferDbnTennis(results, priorProb, emissionProb, transitionProb)
 
     inferDbnTennis.getPlayerAWinningProb("playerA", "playerD", 8)
+  }
+
+  @Test def getPLayerAWinningProb_Federer_Nadal_infer_object_created_manually {
+
+    val varR1 = new Variable(3)
+    val varR2 = new Variable(3)
+    val varScore = new Variable(2)
+
+    val factorR1 = LogTableFactor.makeFromValues(Array(varR1), Array(5.647370307995246E-17, 2.4441886487929025E-5, 0.9999755581135146))
+    val factorR2 = LogTableFactor.makeFromValues(Array(varR2), Array(1.0326870013899315E-11, 0.0014485133712921617, 0.9985514866183759))
+    val factorScore = LogTableFactor.makeFromValues(Array(varR1, varR2, varScore), Array(0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5))
+
+    val factors = List(factorR1, factorR2, factorScore)
+
+    val factorGraph = new FactorGraph()
+    factors.foreach(f => factorGraph.addFactor(f))
+
+    val resultVariables = List((Result("Roger Federer", "Rafael Nadal", None, 0) -> varScore))
+    val playerVariables = Map[Int, Map[String, Variable]]()
+    val inferTennis = GrmmInferDbnTennis(factorGraph, factorGraph, resultVariables, playerVariables)
+    inferTennis.computeMarginals()
+
+    val winningProb = inferTennis.getPlayerAWinningProb("Roger Federer", "Rafael Nadal", 0)
+    assertEquals(0.5001, winningProb, 0.0001)
+
   }
 
   /**Tests for getPlayerRating.*/
