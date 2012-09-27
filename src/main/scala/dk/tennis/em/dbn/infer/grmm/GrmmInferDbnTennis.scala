@@ -29,7 +29,7 @@ import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
  *
  */
 case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: FactorGraph,
-  resultVariables: Map[Result, Variable], playerVariables: Map[Int, Map[String, Variable]]) extends InferDbnTennis {
+  resultVariables: Seq[Tuple2[Result, Variable]], playerVariables: Map[Int, Map[String, Variable]]) extends InferDbnTennis {
 
   private val inferencer = new LoopyBP()
 
@@ -82,7 +82,7 @@ case class GrmmInferDbnTennis(factorGraph: FactorGraph, originalFactorGraph: Fac
 
   /** @see InferDbnTennis*/
   def getPlayerAWinningProb(playerA: String, playerB: String, t: Int): Double = {
-    val (result, variable) = resultVariables.find { case (r, v) => r.playerA.equals(playerA) && r.playerB.equals(playerB) && r.timeSlice == t }.get
+    val (result, variable) = resultVariables.find { case (r, v) => r.playerA.equals(playerA) && r.playerB.equals(playerB) && r.timeSlice == t && r.playerAWinner.isEmpty}.get
     val marginalFactor = inferencer.lookupMarginal(variable).asInstanceOf[AbstractTableFactor]
     marginalFactor.value(0)
   }
