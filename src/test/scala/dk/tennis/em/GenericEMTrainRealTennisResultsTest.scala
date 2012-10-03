@@ -14,22 +14,24 @@ import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
 class GenericEMTrainRealTennisResultsTest {
 
-  val priorProb = List(0.2, 0.5, 0.3)
+  val ratingSize = 5
+  
+  val rand = new Random(System.currentTimeMillis())
+  val priorProb = (1 to ratingSize).map(i => 1d / i)
+  val normPriorProb = priorProb.map(v => v / priorProb.sum)
 
-  val emissionProb = List(
-    0.5, 0.5,
-    1d / 3, 2d / 3,
-    0.25, 0.75,
-    2d / 3, 1d / 3,
-    0.5, 0.5,
-    2d / 5, 3d / 5,
-    3d / 4, 1d / 4,
-    3d / 5, 2d / 5,
-    0.5, 0.5)
+  val emissionProb = for (i <- 1 to ratingSize; j <- 1 to ratingSize) yield {
+    val winProb = i.toDouble / (i + j)
+    List(winProb, 1 - winProb)
+  }
 
-  val transitionProb = List(0.98, 0.01, 0.01, 0.01, 0.98, 0.01, 0.01, 0.02, 0.97)
+  val transitionProb = (1 to ratingSize).flatMap { i =>
+    val values = for (j <- 1 to ratingSize) yield rand.nextDouble()
+    val normValues = values.map(v => values.sum)
+    normValues
+  }
 
-  val parameters = Params(priorProb, emissionProb, transitionProb)
+  val parameters = Params(normPriorProb, emissionProb.flatten, transitionProb)
 
   val emTrain = new GenericEMTrain(GrmmInferDbnTennisFactory())
 
@@ -44,7 +46,7 @@ class GenericEMTrainRealTennisResultsTest {
   @Test def emTrain_for_tennis_results_2010_and_2011 {
 
     val atpMatchesLoader = CSVATPMatchesLoader.fromCSVFile("./src/test/resources/match_data_2006_2011.csv")
-    val matches: Seq[MatchComposite] = (2008 to 2009).flatMap(year => atpMatchesLoader.loadMatches(year))
+    val matches: Seq[MatchComposite] = (2006 to 2011).flatMap(year => atpMatchesLoader.loadMatches(year))
     val filteredMatches = matches.filter(m => m.tournament.surface == HARD && m.tournament.numOfSet == 2)
 
     val rand = new Random(System.currentTimeMillis())
@@ -73,7 +75,7 @@ class GenericEMTrainRealTennisResultsTest {
   private def toResult(firstMatchTime: Long, m: MatchComposite): Result = {
 
     val timeDate = new DateTime(m.tournament.tournamentTime)
-    val durationSinceFirstMatch = new Duration(timeDate.getMillis() - firstMatchTime).getStandardDays() / 30
+    val durationSinceFirstMatch = new Duration(timeDate.getMillis() - firstMatchTime).getStandardDays() / 30000
     val timeSlice = durationSinceFirstMatch.toInt
 
     val playerAName = m.matchFacts.playerAFacts.playerName

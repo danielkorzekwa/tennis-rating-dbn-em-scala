@@ -11,7 +11,7 @@ import org.joda.time.DateTime
 import org.joda.time.Duration
 import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 
-class GrmmInferDbnTennisRealTennisResultsTest {
+class GrmmInferDbnTennisFactoryRealTennisResultsTest {
 
   private val priorProb = List(0.2, 0.5, 0.3)
 
