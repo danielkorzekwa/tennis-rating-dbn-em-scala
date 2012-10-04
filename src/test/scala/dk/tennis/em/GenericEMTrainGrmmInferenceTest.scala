@@ -43,7 +43,7 @@ class GenericEMTrainGrmmInferenceTest {
   @Test def train {
 
     val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", false, 1) :: Nil
-    val iterNum = 1;
+    val iterNum = 1
 
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
@@ -63,7 +63,7 @@ class GenericEMTrainGrmmInferenceTest {
   @Test def train_2_iterations {
 
     val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", false, 1) :: Nil
-    val iterNum = 2;
+    val iterNum = 2
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
@@ -80,7 +80,7 @@ class GenericEMTrainGrmmInferenceTest {
   @Test def train_5_iterations {
 
     val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", false, 1) :: Nil
-    val iterNum = 5;
+    val iterNum = 5
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
@@ -93,7 +93,7 @@ class GenericEMTrainGrmmInferenceTest {
   @Test def train_check_for_convergence {
 
     val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", false, 1) :: Nil
-    val iterNum = 500;
+    val iterNum = 500
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
@@ -108,7 +108,7 @@ class GenericEMTrainGrmmInferenceTest {
     val results = Result("P1", "P2", true, 1) :: Result("P1", "P3", true, 1) :: Result("P2", "P3", false, 1) ::
       Result("P1", "P2", true, 2) :: Result("P1", "P3", false, 2) :: Result("P2", "P3", false, 2) ::
       Nil
-    val iterNum = 1;
+    val iterNum = 1
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
@@ -126,7 +126,7 @@ class GenericEMTrainGrmmInferenceTest {
       Result("P1", "P2", true, 2) :: Result("P1", "P3", false, 2) :: Result("P2", "P3", false, 2) ::
       Nil
 
-    val iterNum = 2;
+    val iterNum = 2
     val trainedParams = emTrain.train(parameters, results.toList, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
@@ -140,11 +140,11 @@ class GenericEMTrainGrmmInferenceTest {
     vectorAssert(List(-3.9678, -3.6233), llh.reverse, 0.0001)
   }
 
-  @Test def train_all_results_for_50_time_slices_50_iterations {
+  @Test def train_all_results_for_50_time_slices_10_iterations {
 
     val results = (1 to 50).flatMap(i => Result("P1", "P2", true, i) :: Result("P1", "P3", true, i) :: Result("P2", "P3", false, i) :: Nil)
 
-    val iterNum = 50;
+    val iterNum = 10
     val trainedParams = emTrain.train(parameters, results.toList, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
@@ -171,7 +171,7 @@ class GenericEMTrainGrmmInferenceTest {
       }
     }
 
-    val iterNum = 10;
+    val iterNum = 10
     val trainedParams = emTrain.train(parameters, results.toList, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)

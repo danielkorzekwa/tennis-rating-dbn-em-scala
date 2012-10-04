@@ -31,7 +31,7 @@ class GenericEMTrainFullJoinInferenceTest {
 
   private var llh: List[Double] = Nil
   private def progress(currentIter: Int, logLikelihood: Double) = {
-    llh = logLikelihood :: llh;
+    llh = logLikelihood :: llh
     println("Log likelihood for iteration %d = %f".format(currentIter, logLikelihood))
   }
 
@@ -42,7 +42,7 @@ class GenericEMTrainFullJoinInferenceTest {
   @Test def train {
 
     val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", false, 1) :: Nil
-    val iterNum = 1;
+    val iterNum = 1
 
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
@@ -59,7 +59,7 @@ class GenericEMTrainFullJoinInferenceTest {
   @Test def train_2_iterations {
 
     val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", false, 1) :: Nil
-    val iterNum = 2;
+    val iterNum = 2
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
@@ -76,7 +76,7 @@ class GenericEMTrainFullJoinInferenceTest {
   @Test def train_5_iterations {
 
     val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", false, 1) :: Nil
-    val iterNum = 5;
+    val iterNum = 5
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
@@ -89,14 +89,14 @@ class GenericEMTrainFullJoinInferenceTest {
   @Test def train_check_for_convergence {
 
     val results = Result("P1", "P2", true, 1) :: Result("P2", "P3", false, 1) :: Nil
-    val iterNum = 500;
+    val iterNum = 500
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
     assertEquals(18, trainedParams.emissionProb.size)
     assertEquals(0, trainedParams.transitionProb.size)
 
-    assertEquals(246, llh.size)
+    assertEquals(500, llh.size)
   }
 
   @Test def train_all_results_for_two_time_slices {
@@ -104,7 +104,7 @@ class GenericEMTrainFullJoinInferenceTest {
     val results = Result("P1", "P2", true, 1) :: Result("P1", "P3", true, 1) :: Result("P2", "P3", false, 1) ::
       Result("P1", "P2", true, 2) :: Result("P1", "P3", false, 2) :: Result("P2", "P3", false, 2) ::
       Nil
-    val iterNum = 1;
+    val iterNum = 1
     val trainedParams = emTrain.train(parameters, results, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)
@@ -122,7 +122,7 @@ class GenericEMTrainFullJoinInferenceTest {
       Result("P1", "P2", true, 2) :: Result("P1", "P3", false, 2) :: Result("P2", "P3", false, 2) ::
       Nil
 
-    val iterNum = 2;
+    val iterNum = 2
     val trainedParams = emTrain.train(parameters, results.toList, iterNum, progress)
 
     assertEquals(3, trainedParams.priorProb.size)

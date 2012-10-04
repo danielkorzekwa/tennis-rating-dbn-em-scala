@@ -47,8 +47,19 @@ class GenericEMTrain(inferDbnTennisFactory: InferDbnTennisFactory) extends EMTra
       /**
        * For a better stopping criteria, please look here: em_converged.m (BNT tool) or Numerical Recipes in C p423
        * (http://astronu.jinr.ru/wiki/upload/d/d6/NumericalRecipesinC.pdf)
+       *
+       * if (iter < iterNum && llh > prevLlh)
+       *
+       * The stopping criteria above actually doesn't always work for big dynamic bayesian networks,
+       * where log likelihood of evidence (tennis results) might became positive for the very first iterations of EM.
+       * The log likelihood is calculated using conditional probability, as:
+       * llh(B) = logProb(A and B) - logProb(A given B)
+       *
+       * logProb(A given B) is calculated using approximated inference,
+       * therefore for very small likelihoods of a data given model, logProb(A given B) might be higher than log(A and B),
+       * which causes positive llh(B)
        */
-      if (iter < iterNum && llh > prevLlh) trainIteration(newParameters, iter + 1, llh) else newParameters
+      if (iter < iterNum) trainIteration(newParameters, iter + 1, llh) else newParameters
     }
 
     val newParameters = trainIteration(parameters, 1)
@@ -63,7 +74,7 @@ class GenericEMTrain(inferDbnTennisFactory: InferDbnTennisFactory) extends EMTra
     val priorRatingProbs = inferDbnTennis.getRatingPriorProbabilities()
     val scoreEmissionProbs = inferDbnTennis.getScoreEmissionProbabilities()
     val ratingTransitionProbs = inferDbnTennis.getRatingTransitionProbabilities()
-    
+
     val priorStats = sum(priorRatingProbs)
     val emissionStats = sum(scoreEmissionProbs)
     val transitionStats = sum(ratingTransitionProbs)
