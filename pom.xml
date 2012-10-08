@@ -120,7 +120,7 @@
 		<dependency>
 			<groupId>edu.umass.cs.mallet</groupId>
 			<artifactId>grmm</artifactId>
-			<version>0.1.3</version>
+			<version>0.1.3-alphabet-memfix</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.umass.cs.mallet</groupId>
