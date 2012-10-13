@@ -61,7 +61,7 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
   }
 
   /**
-   * Compute new message
+   * Computes new message
    *
    * @param cluster Cluster, which sends this message
    * @param message Message, which has to be recomputed
@@ -96,7 +96,9 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
     val newMessages = clusterGraph.messages
 
     val notCalibratedMsg = oldMessages.find { oldMsg =>
-      val newMsg = newMessages.find(newMsg => newMsg.srcClusterId == oldMsg.srcClusterId && newMsg.destClusterId == oldMsg.destClusterId).get
+      val newMsg = newMessages.find(newMsg =>
+        newMsg.srcClusterId == oldMsg.srcClusterId && newMsg.destClusterId == oldMsg.destClusterId).get
+
       !messagesCalibrated(oldMsg, newMsg)
     }
     notCalibratedMsg.isEmpty
@@ -104,7 +106,9 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
 
   /**Returns true if two messages are calibrated, otherwise false is returned.*/
   private def messagesCalibrated(oldMsg: Message, newMsg: Message): Boolean = {
-    val notCalibratedValue = oldMsg.factor.values.zip(newMsg.factor.values).find { case (oldVal, newVal) => abs(oldVal - newVal) > threashold }
+    val notCalibratedValue = oldMsg.factor.values.zip(newMsg.factor.values).
+      find { case (oldVal, newVal) => abs(oldVal - newVal) > threashold }
+
     notCalibratedValue.isEmpty
   }
 }
@@ -115,7 +119,7 @@ object GenericClusterGraph {
   /**
    * Message sent between clusters.
    *
-   * @constructor Creates message, which is sent between cluster
+   * @constructor Creates message, which is sent between clusters
    *
    * @param srcClusterId Cluster sending this message
    * @param destClusterId Cluster receiving this message
