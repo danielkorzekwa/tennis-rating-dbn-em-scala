@@ -21,7 +21,7 @@ import scala.Math._
  */
 case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], threashold: Double = 0.00001) extends ClusterGraph {
 
-  final def calibrate(iterNum: (Int) => Unit): ClusterGraph = {
+  def calibrate(iterNum: (Int) => Unit): ClusterGraph = {
 
     @tailrec
     def calibrateUntilConverge(oldGraph: GenericClusterGraph, currentIter: Int): GenericClusterGraph = {
