@@ -50,10 +50,10 @@ class GenericClusterGraphTest {
 
     calibratedClusterGraph.logLikelihood(assignment)
   }
-  
-   @Test(expected = classOf[IllegalArgumentException]) def logLikelihood_assignment_not_unique {
 
-    val assignment = List(Assignment("1", "T"), Assignment("2", "F"), Assignment("1", "T"),Assignment("3", "T"))
+  @Test(expected = classOf[IllegalArgumentException]) def logLikelihood_assignment_not_unique {
+
+    val assignment = List(Assignment("1", "T"), Assignment("2", "F"), Assignment("1", "T"), Assignment("3", "T"))
 
     calibratedClusterGraph.logLikelihood(assignment)
   }
@@ -63,6 +63,20 @@ class GenericClusterGraphTest {
 
     val llh = calibratedClusterGraph.logLikelihood(assignment)
 
-    assertEquals(-1.9379, llh,0.0001)
+    assertEquals(-1.9379, llh, 0.0001)
   }
+
+  /**
+   * Tests for marginal
+   */
+  @Test(expected = classOf[NoSuchElementException]) def marginal_variable_not_found {
+    calibratedClusterGraph.marginal("wrong name")
+  }
+
+  @Test def marginal {
+    assertEquals(Factor(Var("1", List("T", "F")), List(0.3, 0.7): _*), calibratedClusterGraph.marginal(var1.name))
+    assertEquals(Factor(Var("2", List("T", "F")), List(0.13, 0.87): _*), calibratedClusterGraph.marginal(var2.name))
+    assertEquals(Factor(Var("3", List("T", "F")), List(0.613, 0.387): _*), calibratedClusterGraph.marginal(var3.name))
+  }
+
 }

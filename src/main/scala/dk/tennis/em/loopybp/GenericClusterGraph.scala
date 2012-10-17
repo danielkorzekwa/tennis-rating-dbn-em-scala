@@ -42,7 +42,7 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
 
     val shuffledClusters = rand.shuffle(clusters)
 
-    val newMessages = shuffledClusters.flatMap(c => calNewClusterMessages(c))
+    val newMessages = shuffledClusters.flatMap(c => calcNewClusterMessages(c))
 
     val newClusterGraph = GenericClusterGraph(clusters, newMessages)
     newClusterGraph
@@ -55,9 +55,9 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
    *
    * @return New set of messages computed for a cluster
    */
-  private def calNewClusterMessages(cluster: Cluster): Seq[Message] = {
+  private def calcNewClusterMessages(cluster: Cluster): Seq[Message] = {
     val messagesOut = messages.filter(m => m.srcClusterId == cluster.id)
-    messagesOut.map(m => calNewMessage(cluster, m))
+    messagesOut.map(m => calcNewMessage(cluster, m))
   }
 
   /**
@@ -69,7 +69,7 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
    * @return New computed message
    *
    */
-  private def calNewMessage(cluster: Cluster, message: Message): Message = {
+  private def calcNewMessage(cluster: Cluster, message: Message): Message = {
     val messagesInButOne = messages.filter(m => m.destClusterId == cluster.id && m.srcClusterId != message.destClusterId)
 
     val newMessageOutFactor = cluster.factor.product(messagesInButOne.map(m => m.factor): _*)
@@ -120,6 +120,13 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
 
   def getClusters(): Seq[Cluster] = clusters
 
+  /**Returns marginal factor for a variable in a cluster graph.*/
+  def marginal(varName:String):Factor = {
+    val varCluster = clusters.find(c => c.factor.variables.map(v => v.name).contains(varName)).get
+   val varMarginal = clusterBelief(varCluster.id).marginal(varName)
+   varMarginal
+  }
+  
   /**Returns true if this cluster is calibrated with that cluster.*/
   private def isCalibrated(clusterGraph: GenericClusterGraph): Boolean = {
 

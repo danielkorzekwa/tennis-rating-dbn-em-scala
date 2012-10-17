@@ -34,6 +34,9 @@ trait ClusterGraph {
 
   /**Returns log likelihood of assignment for all variables in a factor graph.*/
   def logLikelihood(assignment: Seq[Assignment]): Double
+  
+  /**Returns marginal factor for a variable in a cluster graph.*/
+  def marginal(varName:String):Factor
 
 }
 

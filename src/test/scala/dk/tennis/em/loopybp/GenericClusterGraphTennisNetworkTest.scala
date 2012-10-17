@@ -39,14 +39,26 @@ class GenericClusterGraphTennisNetworkTest {
     val clusterGraph = GenericClusterGraph(List(clusterPlayer1, clusterPlayer2, clusterScore), edges)
     val calibratedClusterGraph = clusterGraph.calibrate(progress)
 
+    //Check cluster beliefs
     vectorAssert(List(0.1366, 0.5033, 0.36), calibratedClusterGraph.clusterBelief(1).values, 0.0001)
     vectorAssert(List(0.2633, 0.49666, 0.24), calibratedClusterGraph.clusterBelief(2).values, 0.0001)
     vectorAssert(List(0.04, 0, 0.0666, 0, 0.03, 0, 0.1333, 0, 0.25, 0, 0.12, 0, 0.09, 0, 0.18, 0, 0.09, 0), calibratedClusterGraph.clusterBelief(3).values, 0.0001)
 
+    //Check log likelihood
     val assignment = List(Assignment("Player1", "1"), Assignment("Player2", "1"), Assignment("Score", "W"))
     val llh = calibratedClusterGraph.logLikelihood(assignment)
-
     assertEquals(-3.2188, llh, 0.0001)
+
+    //Check marginals
+    assertEquals(List(Var("Player1", ("1", "2", "3"))), calibratedClusterGraph.marginal(player1Var.name).variables)
+    vectorAssert(List(0.1366, 0.5033, 0.36), calibratedClusterGraph.marginal(player1Var.name).values, 0.0001)
+
+    assertEquals(List(Var("Player2", ("1", "2", "3"))), calibratedClusterGraph.marginal(player2Var.name).variables)
+    vectorAssert(List(0.2633, 0.49666, 0.24), calibratedClusterGraph.marginal(player2Var.name).values, 0.0001)
+
+    assertEquals(List(Var("Score", ("W", "L"))), calibratedClusterGraph.marginal(scoreVar.name).variables)
+    vectorAssert(List(1.0, 0),
+      calibratedClusterGraph.marginal(scoreVar.name).values, 0.0001)
   }
 
   @Test def two_tennis_results_in_a_single_time_slice {
