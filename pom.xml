@@ -101,7 +101,6 @@
 			<plugin>
 				<groupId>org.scala-tools</groupId>
 				<artifactId>maven-scala-plugin</artifactId>
-				<version>2.13.1</version>
 			</plugin>
 		</plugins>
 	</reporting>
