@@ -32,15 +32,29 @@ trait ClusterGraph {
    */
   def clusterBelief(clusterId: Int): Factor
 
+  /**Returns log likelihood of assignment for all variables in a factor graph.*/
+  def logLikelihood(assignment: Seq[Assignment]): Double
+
 }
 
 object ClusterGraph {
 
-  /**Cluster in a cluster graph.
-   * 
+  /**
+   * Cluster in a cluster graph.
+   *
    * @constructor Creates new cluster
    * @param id Unique cluster id
    * @param factor Initial cluster potential
    */
   case class Cluster(id: Int, factor: Factor)
+
+  /**
+   * Assignment of a value to a variable.
+   *
+   * @constructor Creates new assignment
+   *
+   * @param variableName Unique identifier of variable
+   * @param variableValue Value of variable
+   */
+  case class Assignment(variableName: String, variableValue: String)
 }

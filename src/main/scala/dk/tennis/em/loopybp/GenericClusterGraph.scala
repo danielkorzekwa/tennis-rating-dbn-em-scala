@@ -87,6 +87,37 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
     clusterBelief.normalize()
   }
 
+  def logLikelihood(assignment: Seq[Assignment]): Double = {
+    val allVariables = clusters.flatMap(c => c.factor.variables)
+    val allVariableNames = allVariables.map(v => v.name).distinct
+
+    val assignmentDiff = allVariableNames.diff(assignment.map(a => a.variableName))
+    require(assignmentDiff.size == 0, "Assignment of all variables in a cluster is required.")
+    require(assignment.size == assignment.distinct.size, "Assignment is not unique.")
+
+    val clustersLoglikelihood = clusters.map(c => log(likelihood(clusterBelief(c.id), assignment))).sum
+
+    val sepsetBeliefs: Seq[Factor] = messages.filter(m => m.srcClusterId > m.destClusterId).map { m =>
+      val linkedMessage = messages.find(msg => msg.srcClusterId == m.destClusterId && msg.destClusterId == m.srcClusterId).get
+      m.factor.product(linkedMessage.factor).normalize()
+    }
+    val sepsetLoglikelihood = sepsetBeliefs.map(b => log(likelihood(b, assignment))).sum
+
+    clustersLoglikelihood - sepsetLoglikelihood
+  }
+
+  /**Returns likelihood of factor assignment*/
+  private def likelihood(factor: Factor, assignment: Seq[Assignment]): Double = {
+
+    def assignmentValue(varName: String): String = assignment.find(a => a.variableName == varName).get.variableValue
+
+    //Tuple2[varName,varValue]
+    val factorAssignment: Seq[Tuple2[String, String]] = factor.variables.map(v => (v.name, assignmentValue(v.name)))
+
+    val evidenceFactor = factor.evidence(factorAssignment: _*)
+    evidenceFactor.values.sum
+  }
+
   def getClusters(): Seq[Cluster] = clusters
 
   /**Returns true if this cluster is calibrated with that cluster.*/
