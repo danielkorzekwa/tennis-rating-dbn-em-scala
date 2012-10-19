@@ -187,6 +187,15 @@ class FactorTest {
     assertEquals(1d / 3, marginal.values(1), 0.001)
     assertEquals(1d / 3, marginal.values(2), 0.001)
   }
+  
+  @Test def marginal_single_variable_no_evidence_multiple_calls {
+    val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorR2 = Factor(Var("R2", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)
+    val factorScore = Factor(Var("R1", ("1", "2", "3")), Var("R2", ("1", "2", "3")), Var("Score", ("W", "L")), 0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5)
+    val fullJoinFactor = factorR1.product(factorR2).product(factorScore)
+
+    for(i <- 0 until 1000000) fullJoinFactor.marginal("R2") 
+  }
 
   @Test def marginal_single_variable_with_single_evidence {
     val factorR1 = Factor(Var("R1", ("1", "2", "3")), 1d / 3, 1d / 3, 1d / 3)

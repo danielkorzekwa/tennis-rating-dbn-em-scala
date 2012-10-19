@@ -56,14 +56,8 @@ object Factor {
  */
 case class Factor(variables: Seq[Var], values: Seq[Double]) {
   val dimensions = variables.map(v => v.values.size)
+  val stepSizes: Seq[Int] = calcStepSizes(dimensions)
 
-  /**
-   * Step sizes for all dimensions of this factor.
-   * Step size - how many steps are there before reaching next assignment for a given dimension.
-   */
-  val stepSizes: Seq[Int] = dimensions.zipWithIndex.map {
-    case (d, index) => dimensions.drop(index + 1).product
-  }
   require(values.size == dimensions.product, "Number of factor values must be equal to product of variable dimensions")
   /**
    * Multiply this factor by all factors in a 'factors' parameter.
@@ -77,13 +71,9 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
       val newVariables = factorA.variables.union(factorB.variables).distinct
       val newDimensions = newVariables.map(v => v.values.size)
 
-      /**Returns mapping between new dimensions and step sizes for dimensions of factors A and B*/
-      def factorStepMappings(factor: Factor): Seq[Int] = newVariables.map { newVar =>
-        val varMappingIndex = factor.variables.indexOf(newVar)
-        if (varMappingIndex >= 0) factor.stepSizes(varMappingIndex) else 0
-      }
-      val factorAStepMappings = factorStepMappings(factorA)
-      val factorBStepMappings = factorStepMappings(factorB)
+      /**Returns mapping between new variables and step sizes for dimensions of factors A and B*/
+      val factorAStepMappings = calcStepMappings(factorA.variables, factorA.stepSizes, newVariables)
+      val factorBStepMappings = calcStepMappings(factorB.variables, factorB.stepSizes, newVariables)
 
       val dimProduct = newDimensions.product
       val values = new Array[Double](dimProduct)
@@ -156,20 +146,58 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
   def marginal(variableNames: String*): Factor = {
     require(!variableNames.isEmpty, "List of marginal variables is empty")
 
-    /**Tuple2 [variable, index]*/
-    val marginalVariables: Seq[Tuple2[Var, Int]] = variables.zipWithIndex.filter { case (v, index) => variableNames.contains(v.name) }
-    val marginalDimensions = marginalVariables.map(v => v._1.values.size)
+    val marginalVariables: Seq[Var] = variables.filter { v => variableNames.contains(v.name) }
+    val marginalDimensions = marginalVariables.map(v => v.values.size)
+    val marginalValues = new Array[Double](marginalDimensions.product)
 
-    /**List of Tuple2 [Marginal assignment, value]*/
-    val assignmentMapping = computeAllAssignments(dimensions).map(a => marginalVariables.map(v => a(v._2))).zip(values)
+    val marginalStepSizes: Seq[Int] = calcStepSizes(marginalDimensions)
+    val marginalStepMappings = calcStepMappings(marginalVariables, marginalStepSizes, variables)
 
-    val marginalAssignmentValues = assignmentMapping.groupBy(m => m._1).mapValues(v => v.map(v => v._2).sum)
-    val marginalValues = marginalAssignmentValues.toList.sortBy(v => assignmentToIndex(v._1, marginalDimensions)).map { case (a, v) => v }
+    var marginalIndex = 0
+    var assignment: Array[Int] = new Array(dimensions.size)
 
-    val marginalFactor = Factor(marginalVariables.map(v => v._1), marginalValues)
+    val dimProduct = dimensions.product
+    var i = 0
+    while (i < dimProduct) {
 
-    marginalFactor
+      marginalValues(marginalIndex) += values(i)
+
+      var dimIndex = dimensions.size - 1
+      var continue = true
+      while (continue && dimIndex >= 0) {
+
+        if (assignment(dimIndex) != dimensions(dimIndex) - 1) {
+          assignment(dimIndex) += 1
+          marginalIndex += marginalStepMappings(dimIndex)
+          continue = false
+        } else {
+          marginalIndex -= (dimensions(dimIndex) - 1) * marginalStepMappings(dimIndex)
+          assignment(dimIndex) = 0
+        }
+
+        dimIndex -= 1
+      }
+
+      i += 1
+    }
+
+    Factor(marginalVariables, marginalValues)
   }
+
+  /**
+   * Calculates step sizes for dimensions.
+   * @returns Step size - how many steps are there before reaching next assignment for a given dimension.
+   */
+  private def calcStepSizes(dimensions: Seq[Int]): Seq[Int] = dimensions.zipWithIndex.map {
+    case (d, index) => dimensions.drop(index + 1).product
+  }
+
+  /**Returns mapping between factor and variables*/
+  def calcStepMappings(factorVariables: Seq[Var], factorStepSizes: Seq[Int], variables: Seq[Var]): Seq[Int] =
+    variables.map { v =>
+      val varMappingIndex = factorVariables.indexOf(v)
+      if (varMappingIndex >= 0) factorStepSizes(varMappingIndex) else 0
+    }
 
   /**Normalize all factor values so they sum up to 1.*/
   def normalize(): Factor = {
