@@ -2,6 +2,7 @@ package dk.tennis.em.bn
 
 import Factor._
 import AssignmentUtil._
+import scala.util.control.Breaks._
 
 object Factor {
 
@@ -55,8 +56,15 @@ object Factor {
  */
 case class Factor(variables: Seq[Var], values: Seq[Double]) {
   val dimensions = variables.map(v => v.values.size)
-  require(values.size == dimensions.product, "Number of factor values must be equal to product of variable dimensions")
 
+  /**
+   * Step sizes for all dimensions of this factor.
+   * Step size - how many steps are there before reaching next assignment for a given dimension.
+   */
+  val stepSizes: Seq[Int] = dimensions.zipWithIndex.map {
+    case (d, index) => dimensions.drop(index + 1).product
+  }
+  require(values.size == dimensions.product, "Number of factor values must be equal to product of variable dimensions")
   /**
    * Multiply this factor by all factors in a 'factors' parameter.
    *
@@ -65,43 +73,54 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
    */
   def product(factors: Factor*): Factor = {
 
-    /**
-     * Produce product of two factors.
-     *
-     * @return Product of factors.
-     */
     def productTwoFactors(factorA: Factor, factorB: Factor): Factor = {
-
       val newVariables = factorA.variables.union(factorB.variables).distinct
       val newDimensions = newVariables.map(v => v.values.size)
 
-      /** Map variable indices of input factor to variables indices in product factor.*/
-      def mapToNewFactor(factor: Factor): Seq[Int] = {
-        factor.variables.map(v => newVariables.indexOf(v))
+      /**Returns mapping between new dimensions and step sizes for dimensions of factors A and B*/
+      def factorStepMappings(factor: Factor): Seq[Int] = newVariables.map { newVar =>
+        val varMappingIndex = factor.variables.indexOf(newVar)
+        if (varMappingIndex >= 0) factor.stepSizes(varMappingIndex) else 0
       }
-      val mapFactorA = mapToNewFactor(factorA)
-      val mapFactorB = mapToNewFactor(factorB)
+      val factorAStepMappings = factorStepMappings(factorA)
+      val factorBStepMappings = factorStepMappings(factorB)
 
-      val factorADimensions = factorA.dimensions
-      val factorBDimensions = factorB.variables.map(v => v.values.size)
+      val dimProduct = newDimensions.product
+      val values = new Array[Double](dimProduct)
+      var indexFactorA = 0
+      var indexFactorB = 0
+      var assignment: Array[Int] = new Array(newDimensions.size)
+      var i = 0
 
-      val assignments = computeAllAssignments(newDimensions)
+      while (i < dimProduct) {
 
-      val values = assignments.map { a =>
-        val factorAAssignment = mapFactorA.map(indice => a(indice))
-        val factorBAssignment = mapFactorB.map(indice => a(indice))
-        val factorAValue = factorA.values(assignmentToIndex(factorAAssignment, factorADimensions))
-        val factorBValue = factorB.values(assignmentToIndex(factorBAssignment, factorBDimensions))
+        val factorValue = factorA.values(indexFactorA) * factorB.values(indexFactorB)
 
-        val factorValue = factorAValue * factorBValue
-        factorValue
+        var dimIndex = newDimensions.size - 1
+        var continue = true
+        while (continue && dimIndex >= 0) {
+
+          if (assignment(dimIndex) != newDimensions(dimIndex) - 1) {
+            assignment(dimIndex) += 1
+            indexFactorA += factorAStepMappings(dimIndex)
+            indexFactorB += factorBStepMappings(dimIndex)
+            continue = false
+          } else {
+            indexFactorA -= (newDimensions(dimIndex) - 1) * factorAStepMappings(dimIndex)
+            indexFactorB -= (newDimensions(dimIndex) - 1) * factorBStepMappings(dimIndex)
+            assignment(dimIndex) = 0
+          }
+
+          dimIndex -= 1
+        }
+
+        values(i) = factorValue
+        i += 1
       }
 
       Factor(newVariables, values)
     }
-
     factors.foldLeft(this)((factorProduct, factor) => productTwoFactors(factorProduct, factor))
-
   }
 
   /**

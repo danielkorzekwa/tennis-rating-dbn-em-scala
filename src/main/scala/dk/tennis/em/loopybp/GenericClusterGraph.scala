@@ -21,6 +21,9 @@ import scala.Math._
  */
 case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], threashold: Double = 0.00001) extends ClusterGraph {
 
+  private val msgByDestClusterId: Map[Int, Seq[Message]] = messages.groupBy(m => m.destClusterId)
+  private val msgBySrcClusterId: Map[Int, Seq[Message]] = messages.groupBy(m => m.srcClusterId)
+
   def calibrate(iterNum: (Int) => Unit): ClusterGraph = {
 
     @tailrec
@@ -56,7 +59,7 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
    * @return New set of messages computed for a cluster
    */
   private def calcNewClusterMessages(cluster: Cluster): Seq[Message] = {
-    val messagesOut = messages.filter(m => m.srcClusterId == cluster.id)
+    val messagesOut = msgBySrcClusterId(cluster.id)
     messagesOut.map(m => calcNewMessage(cluster, m))
   }
 
@@ -70,7 +73,7 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
    *
    */
   private def calcNewMessage(cluster: Cluster, message: Message): Message = {
-    val messagesInButOne = messages.filter(m => m.destClusterId == cluster.id && m.srcClusterId != message.destClusterId)
+    val messagesInButOne = msgByDestClusterId(cluster.id).filter(m => m.srcClusterId != message.destClusterId)
 
     val newMessageOutFactor = cluster.factor.product(messagesInButOne.map(m => m.factor): _*)
     val newMessageOutMarginal = newMessageOutFactor.marginal(message.factor.variables.map(_.name): _*).normalize()
@@ -121,12 +124,12 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
   def getClusters(): Seq[Cluster] = clusters
 
   /**Returns marginal factor for a variable in a cluster graph.*/
-  def marginal(varName:String):Factor = {
+  def marginal(varName: String): Factor = {
     val varCluster = clusters.find(c => c.factor.variables.map(v => v.name).contains(varName)).get
-   val varMarginal = clusterBelief(varCluster.id).marginal(varName)
-   varMarginal
+    val varMarginal = clusterBelief(varCluster.id).marginal(varName)
+    varMarginal
   }
-  
+
   /**Returns true if this cluster is calibrated with that cluster.*/
   private def isCalibrated(clusterGraph: GenericClusterGraph): Boolean = {
 

@@ -122,6 +122,17 @@ class FactorTest {
     assertEquals(531441, factorProduct.values(531441 - 1), 0.001)
   }
 
+  @Test def product_two_factors_multiple_times {
+   
+    
+    val factorA = Factor(Var("Rating1", ("S", "M", "L")), 2d / 6, 3d / 6, 1d / 6)
+
+    val factorB = Factor(Var("Rating1", ("S", "M", "L")), Var("Rating2", ("S", "M", "L")),
+      1, 2, 3, 4, 5, 6, 7, 8, 9)
+
+    for (i <- 1 to 1000000) factorA.product(factorB)
+  }
+
   /**Tests for evidence() function.*/
   @Test def evidence_factor_with_single_variable {
     val factorA = Factor(Var("Rating1", ("S", "M", "L")), 2d / 6, 3d / 6, 1d / 6)
@@ -292,10 +303,10 @@ class FactorTest {
 
     val flatFactors = factors.flatten
     val fullJoinFactor = flatFactors.head.product(flatFactors.tail: _*)
-    val marginalFactor = fullJoinFactor.marginal("R1_3", "R2_3","Score_3")
-    
-    assertEquals(List(Var("R1_" + 3, ("1", "2", "3")), Var("R2_" + 3, ("1", "2", "3")), Var("Score_" + 3, ("W", "L"))),marginalFactor.variables)
-    vectorAssert(List(0.0278, 0.0278, 0.0185, 0.0370, 0.0139, 0.0417, 0.0741, 0.0370, 0.0556, 0.0556, 0.0444, 0.0667, 0.1250, 0.0417, 0.1000, 0.0667, 0.0833, 0.0833),marginalFactor.values,0.0001)
+    val marginalFactor = fullJoinFactor.marginal("R1_3", "R2_3", "Score_3")
+
+    assertEquals(List(Var("R1_" + 3, ("1", "2", "3")), Var("R2_" + 3, ("1", "2", "3")), Var("Score_" + 3, ("W", "L"))), marginalFactor.variables)
+    vectorAssert(List(0.0278, 0.0278, 0.0185, 0.0370, 0.0139, 0.0417, 0.0741, 0.0370, 0.0556, 0.0556, 0.0444, 0.0667, 0.1250, 0.0417, 0.1000, 0.0667, 0.0833, 0.0833), marginalFactor.values, 0.0001)
   }
   /**Tests for normalize() function.*/
 
