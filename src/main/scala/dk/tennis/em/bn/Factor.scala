@@ -66,6 +66,9 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
    *
    */
   def product(factors: Factor*): Factor = {
+    product2(factors)
+  }
+  def product2(factors: Seq[Factor]): Factor = {
 
     def productTwoFactors(factorA: Factor, factorB: Factor): Factor = {
       val newVariables = factorA.variables.union(factorB.variables).distinct
@@ -144,6 +147,9 @@ case class Factor(variables: Seq[Var], values: Seq[Double]) {
    *
    */
   def marginal(variableNames: String*): Factor = {
+    marginal2(variableNames)
+  }
+  def marginal2(variableNames: Seq[String]): Factor = {
     require(!variableNames.isEmpty, "List of marginal variables is empty")
 
     val marginalVariables: Seq[Var] = variables.filter { v => variableNames.contains(v.name) }

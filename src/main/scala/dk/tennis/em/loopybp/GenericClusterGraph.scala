@@ -75,8 +75,15 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
   private def calcNewMessage(cluster: Cluster, message: Message): Message = {
     val messagesInButOne = msgByDestClusterId(cluster.id).filter(m => m.srcClusterId != message.destClusterId)
 
-    val newMessageOutFactor = cluster.factor.product(messagesInButOne.map(m => m.factor): _*)
-    val newMessageOutMarginal = newMessageOutFactor.marginal(message.factor.variables.map(_.name): _*).normalize()
+    var factors = List[Factor]()
+
+    for (m <- messagesInButOne) { factors = m.factor :: factors }
+    val newMessageOutFactor = cluster.factor.product2(factors)
+
+    var varNames = List[String]()
+
+    for (v <- message.factor.variables) { varNames = v.name :: varNames }
+    val newMessageOutMarginal = newMessageOutFactor.marginal2(varNames).normalize()
     val newMessageOut = Message(cluster.id, message.destClusterId, newMessageOutMarginal)
     newMessageOut
   }
@@ -133,16 +140,20 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
   /**Returns true if this cluster is calibrated with that cluster.*/
   private def isCalibrated(clusterGraph: GenericClusterGraph): Boolean = {
 
-    val oldMessages = messages
-    val newMessages = clusterGraph.messages
+    val notCalibratedCluster = msgBySrcClusterId.find {
+      case (clusterId, oldMessages) =>
 
-    val notCalibratedMsg = oldMessages.find { oldMsg =>
-      val newMsg = newMessages.find(newMsg =>
-        newMsg.srcClusterId == oldMsg.srcClusterId && newMsg.destClusterId == oldMsg.destClusterId).get
+        val newMessages = clusterGraph.msgBySrcClusterId(clusterId)
 
-      !messagesCalibrated(oldMsg, newMsg)
+        val notCalibratedMsg = oldMessages.find { oldMsg =>
+          val newMsg = newMessages.find(newMsg => newMsg.destClusterId == oldMsg.destClusterId).get
+
+          !messagesCalibrated(oldMsg, newMsg)
+        }
+        !notCalibratedMsg.isEmpty
     }
-    notCalibratedMsg.isEmpty
+
+    notCalibratedCluster.isEmpty
   }
 
   /**Returns true if two messages are calibrated, otherwise false is returned.*/
