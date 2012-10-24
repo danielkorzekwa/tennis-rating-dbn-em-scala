@@ -4,7 +4,6 @@ import EMTrain._
 import scala.annotation.tailrec
 import dbn._
 import dk.tennis.em.dbn.infer._
-import dk.tennis.em.dbn.infer.generic.GenericInferDbnTennis
 import GenericEMTrain._
 import factorgraph.GenericDbnTennis
 import dk.tennis.em.dbn.factorgraph.DbnTennis.Result

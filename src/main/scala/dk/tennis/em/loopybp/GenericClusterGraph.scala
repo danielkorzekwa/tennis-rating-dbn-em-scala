@@ -38,15 +38,17 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
 
     calibrateUntilConverge(this, 1)
   }
-
+ 
+  val rand = new Random(System.currentTimeMillis())
   /**Computes messages passed between clusters and returns new factor graph.*/
   private def calibrateIteration(): GenericClusterGraph = {
-    val rand = new Random(System.currentTimeMillis())
-
+   
+ val rand = new Random(System.currentTimeMillis())
     val shuffledClusters = rand.shuffle(clusters)
 
-    val newMessages = shuffledClusters.flatMap(c => calcNewClusterMessages(c))
-
+    var i=0
+    val newMessages = shuffledClusters.flatMap { c =>calcNewClusterMessages(c)}
+ 
     val newClusterGraph = GenericClusterGraph(clusters, newMessages)
     newClusterGraph
   }
@@ -78,14 +80,27 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
     var factors = List[Factor]()
 
     for (m <- messagesInButOne) { factors = m.factor :: factors }
-    val newMessageOutFactor = cluster.factor.product2(factors)
+    val newMessageOutFactor = cluster.factor.product(factors, Option(variableMapping))
 
-    var varNames = List[String]()
+    var varNames = List[Int]()
 
-    for (v <- message.factor.variables) { varNames = v.name :: varNames }
-    val newMessageOutMarginal = newMessageOutFactor.marginal2(varNames).normalize()
+    for (v <- message.factor.variables) { varNames = v.id :: varNames }
+    val newMessageOutMarginal = newMessageOutFactor.marginal(varNames).normalize()
     val newMessageOut = Message(cluster.id, message.destClusterId, newMessageOutMarginal)
     newMessageOut
+  }
+
+  def variableMapping(factorA: Factor, factorB: Factor): Array[VariableMapping] = {
+    val variableMappingArray = new Array[VariableMapping](factorA.variables.size)
+
+    var i = 0
+    while (i < factorA.variables.size) {
+      val factorBMapping = if (factorA.variables(i).id == factorB.variables.head.id) Some(0) else None
+      val variableMapping = VariableMapping(factorA.variables(i), Some(i), factorBMapping)
+      variableMappingArray(i) = variableMapping
+      i += 1
+    }
+    variableMappingArray
   }
 
   def clusterBelief(clusterId: Int): Factor = {
@@ -93,15 +108,15 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
     val messagesIn = messages.filter(m => m.destClusterId == cluster.id)
     val factorsIn = messagesIn.map(m => m.factor)
 
-    val clusterBelief = cluster.factor.product(factorsIn: _*)
+    val clusterBelief = cluster.factor.product(factorsIn)
     clusterBelief.normalize()
   }
 
   def logLikelihood(assignment: Seq[Assignment]): Double = {
     val allVariables = clusters.flatMap(c => c.factor.variables)
-    val allVariableNames = allVariables.map(v => v.name).distinct
+    val allVariableNames = allVariables.map(v => v.id).distinct
 
-    val assignmentDiff = allVariableNames.diff(assignment.map(a => a.variableName))
+    val assignmentDiff = allVariableNames.diff(assignment.map(a => a.variableId))
     require(assignmentDiff.size == 0, "Assignment of all variables in a cluster is required.")
     require(assignment.size == assignment.distinct.size, "Assignment is not unique.")
 
@@ -109,7 +124,7 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
 
     val sepsetBeliefs: Seq[Factor] = messages.filter(m => m.srcClusterId > m.destClusterId).map { m =>
       val linkedMessage = messages.find(msg => msg.srcClusterId == m.destClusterId && msg.destClusterId == m.srcClusterId).get
-      m.factor.product(linkedMessage.factor).normalize()
+      m.factor.productSingle(linkedMessage.factor).normalize()
     }
     val sepsetLoglikelihood = sepsetBeliefs.map(b => log(likelihood(b, assignment))).sum
 
@@ -119,10 +134,10 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
   /**Returns likelihood of factor assignment*/
   private def likelihood(factor: Factor, assignment: Seq[Assignment]): Double = {
 
-    def assignmentValue(varName: String): String = assignment.find(a => a.variableName == varName).get.variableValue
+    def assignmentValue(varId: Int): Int = assignment.find(a => a.variableId == varId).get.valueIndex
 
     //Tuple2[varName,varValue]
-    val factorAssignment: Seq[Tuple2[String, String]] = factor.variables.map(v => (v.name, assignmentValue(v.name)))
+    val factorAssignment: Seq[Tuple2[Int, Int]] = factor.variables.map(v => (v.id, assignmentValue(v.id)))
 
     val evidenceFactor = factor.evidence(factorAssignment: _*)
     evidenceFactor.values.sum
@@ -131,9 +146,9 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
   def getClusters(): Seq[Cluster] = clusters
 
   /**Returns marginal factor for a variable in a cluster graph.*/
-  def marginal(varName: String): Factor = {
-    val varCluster = clusters.find(c => c.factor.variables.map(v => v.name).contains(varName)).get
-    val varMarginal = clusterBelief(varCluster.id).marginal(varName)
+  def marginal(varId: Int): Factor = {
+    val varCluster = clusters.find(c => c.factor.variables.map(v => v.id).contains(varId)).get
+    val varMarginal = clusterBelief(varCluster.id).marginal(varId)
     varMarginal
   }
 
@@ -211,8 +226,8 @@ object GenericClusterGraph {
    */
   private def calcSepset(clusterA: Cluster, clusterB: Cluster): Factor = {
     val intersectVariables = clusterA.factor.variables.intersect(clusterB.factor.variables)
-    val dimension = intersectVariables.map(v => v.values.size).product
-    val uniformValues = (0 until dimension).map(i => 1d)
+    val dimension = intersectVariables.map(v => v.dim).product
+    val uniformValues = (0 until dimension).map(i => 1d).toArray
     Factor(intersectVariables, uniformValues)
   }
 }

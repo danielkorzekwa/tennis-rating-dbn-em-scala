@@ -11,6 +11,7 @@ import scala.util.Random
 import org.joda.time.DateTime
 import org.joda.time.Duration
 import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
+import dk.tennis.em.dbn.infer.clusterloopybp.ClusterLoopyBPInferDbnTennisFactory
 
 class GenericEMTrainRealTennisResultsTest {
 
@@ -33,7 +34,8 @@ class GenericEMTrainRealTennisResultsTest {
 
   val parameters = Params(normPriorProb, emissionProb.flatten, transitionProb)
 
-  val emTrain = new GenericEMTrain(GrmmInferDbnTennisFactory())
+ // val emTrain = new GenericEMTrain(GrmmInferDbnTennisFactory())
+    val emTrain = new GenericEMTrain(ClusterLoopyBPInferDbnTennisFactory())
 
   private var llh: List[Double] = Nil
   private def progress(currentIter: Int, logLikelihood: Double) = {

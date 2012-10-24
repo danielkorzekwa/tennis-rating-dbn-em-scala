@@ -7,12 +7,12 @@ import dk.tennis.em.bn.Factor
 import dk.tennis.em.bn.Factor._
 import ClusterGraph._
 import GenericClusterGraph._
-import dk.tennis.em.util.VectorAssert._
+import dk.tennis.em.util.AssertUtil._
 class GenericClusterGraphTennisNetworkTest {
 
-  private val priorProb = List(0.2, 0.5, 0.3)
+  private val priorProb = Array(0.2, 0.5, 0.3)
 
-  private val emissionProb = List(
+  private val emissionProb = Array(
     0.5, 0.5,
     1d / 3, 2d / 3,
     0.25, 0.75,
@@ -26,13 +26,13 @@ class GenericClusterGraphTennisNetworkTest {
   def progress(iterNum: Int): Unit = println("Iter: " + iterNum)
 
   @Test def single_tennis_result {
-    val player1Var = Var("Player1", ("1", "2", "3"))
-    val player2Var = Var("Player2", ("1", "2", "3"))
-    val scoreVar = Var("Score", ("W", "L"))
+    val player1Var = Var("Player1".hashCode(), 3)
+    val player2Var = Var("Player2".hashCode(), 3)
+    val scoreVar = Var("Score".hashCode(), 2)
 
-    val clusterPlayer1 = Cluster(1, Factor(List(player1Var), priorProb))
-    val clusterPlayer2 = Cluster(2, Factor(List(player2Var), priorProb))
-    val clusterScore = Cluster(3, Factor(List(player1Var, player2Var, scoreVar), emissionProb).evidence(("Score", "W")))
+    val clusterPlayer1 = Cluster(1, Factor(player1Var, priorProb))
+    val clusterPlayer2 = Cluster(2, Factor(player2Var, priorProb))
+    val clusterScore = Cluster(3, Factor(Array(player1Var, player2Var, scoreVar), emissionProb).evidence(("Score".hashCode(), 0)))
 
     val edges = List((1, 3), (2, 3))
 
@@ -40,39 +40,39 @@ class GenericClusterGraphTennisNetworkTest {
     val calibratedClusterGraph = clusterGraph.calibrate(progress)
 
     //Check cluster beliefs
-    vectorAssert(List(0.1366, 0.5033, 0.36), calibratedClusterGraph.clusterBelief(1).values, 0.0001)
-    vectorAssert(List(0.2633, 0.49666, 0.24), calibratedClusterGraph.clusterBelief(2).values, 0.0001)
-    vectorAssert(List(0.04, 0, 0.0666, 0, 0.03, 0, 0.1333, 0, 0.25, 0, 0.12, 0, 0.09, 0, 0.18, 0, 0.09, 0), calibratedClusterGraph.clusterBelief(3).values, 0.0001)
+    assertVector(List(0.1366, 0.5033, 0.36), calibratedClusterGraph.clusterBelief(1).values, 0.0001)
+    assertVector(List(0.2633, 0.49666, 0.24), calibratedClusterGraph.clusterBelief(2).values, 0.0001)
+    assertVector(List(0.04, 0, 0.0666, 0, 0.03, 0, 0.1333, 0, 0.25, 0, 0.12, 0, 0.09, 0, 0.18, 0, 0.09, 0), calibratedClusterGraph.clusterBelief(3).values, 0.0001)
 
     //Check log likelihood
-    val assignment = List(Assignment("Player1", "1"), Assignment("Player2", "1"), Assignment("Score", "W"))
+    val assignment = List(Assignment("Player1".hashCode(), 0), Assignment("Player2".hashCode(), 0), Assignment("Score".hashCode(), 0))
     val llh = calibratedClusterGraph.logLikelihood(assignment)
     assertEquals(-3.2188, llh, 0.0001)
 
     //Check marginals
-    assertEquals(List(Var("Player1", ("1", "2", "3"))), calibratedClusterGraph.marginal(player1Var.name).variables)
-    vectorAssert(List(0.1366, 0.5033, 0.36), calibratedClusterGraph.marginal(player1Var.name).values, 0.0001)
+    assertEquals(List(Var("Player1".hashCode(), 3)), calibratedClusterGraph.marginal(player1Var.id).variables.toList)
+    assertVector(List(0.1366, 0.5033, 0.36), calibratedClusterGraph.marginal(player1Var.id).values, 0.0001)
 
-    assertEquals(List(Var("Player2", ("1", "2", "3"))), calibratedClusterGraph.marginal(player2Var.name).variables)
-    vectorAssert(List(0.2633, 0.49666, 0.24), calibratedClusterGraph.marginal(player2Var.name).values, 0.0001)
+    assertEquals(List(Var("Player2".hashCode(), 3)), calibratedClusterGraph.marginal(player2Var.id).variables.toList)
+    assertVector(List(0.2633, 0.49666, 0.24), calibratedClusterGraph.marginal(player2Var.id).values, 0.0001)
 
-    assertEquals(List(Var("Score", ("W", "L"))), calibratedClusterGraph.marginal(scoreVar.name).variables)
-    vectorAssert(List(1.0, 0),
-      calibratedClusterGraph.marginal(scoreVar.name).values, 0.0001)
+    assertEquals(List(Var("Score".hashCode(), 2)), calibratedClusterGraph.marginal(scoreVar.id).variables.toList)
+    assertVector(List(1.0, 0),
+      calibratedClusterGraph.marginal(scoreVar.id).values, 0.0001)
   }
 
   @Test def two_tennis_results_in_a_single_time_slice {
-    val player1Var = Var("Player1", ("1", "2", "3"))
-    val player2Var = Var("Player2", ("1", "2", "3"))
-    val player3Var = Var("Player3", ("1", "2", "3"))
-    val score12Var = Var("Score12", ("W", "L"))
-    val score13Var = Var("Score13", ("W", "L"))
+    val player1Var = Var("Player1".hashCode(), 3)
+    val player2Var = Var("Player2".hashCode(), 3)
+    val player3Var = Var("Player3".hashCode(), 3)
+    val score12Var = Var("Score12".hashCode(), 2)
+    val score13Var = Var("Score13".hashCode(), 2)
 
-    val clusterPlayer1 = Cluster(1, Factor(List(player1Var), priorProb))
-    val clusterPlayer2 = Cluster(2, Factor(List(player2Var), priorProb))
-    val clusterPlayer3 = Cluster(3, Factor(List(player3Var), priorProb))
-    val cluster12Score = Cluster(4, Factor(List(player1Var, player2Var, score12Var), emissionProb).evidence(("Score12", "W")))
-    val cluster13Score = Cluster(5, Factor(List(player1Var, player3Var, score13Var), emissionProb).evidence(("Score13", "W")))
+    val clusterPlayer1 = Cluster(1, Factor(player1Var, priorProb))
+    val clusterPlayer2 = Cluster(2, Factor(player2Var, priorProb))
+    val clusterPlayer3 = Cluster(3, Factor(player3Var, priorProb))
+    val cluster12Score = Cluster(4, Factor(player1Var, player2Var, score12Var, emissionProb).evidence(("Score12".hashCode(), 0)))
+    val cluster13Score = Cluster(5, Factor(player1Var, player3Var, score13Var, emissionProb).evidence(("Score13".hashCode(), 0)))
 
     val clusters = List(clusterPlayer1, clusterPlayer2, clusterPlayer3, cluster12Score, cluster13Score)
     val edges = List((1, 4), (2, 4), (1, 5), (3, 5))
@@ -80,14 +80,15 @@ class GenericClusterGraphTennisNetworkTest {
     val clusterGraph = GenericClusterGraph(clusters, edges)
     val calibratedClusterGraph = clusterGraph.calibrate(progress)
 
-    vectorAssert(List(0.0904, 0.4909, 0.4185), calibratedClusterGraph.clusterBelief(1).values, 0.0001)
-    vectorAssert(List(0.2611, 0.4972, 0.2415), calibratedClusterGraph.clusterBelief(2).values, 0.0001)
-    vectorAssert(List(0.2611, 0.4972, 0.2415), calibratedClusterGraph.clusterBelief(3).values, 0.0001)
+    assertVector(List(0.0904, 0.4909, 0.4185), calibratedClusterGraph.clusterBelief(1).values, 0.0001)
+    assertVector(List(0.2611, 0.4972, 0.2415), calibratedClusterGraph.clusterBelief(2).values, 0.0001)
+    assertVector(List(0.2611, 0.4972, 0.2415), calibratedClusterGraph.clusterBelief(3).values, 0.0001)
 
-    vectorAssert(List(0.0265, 0.0000, 0.0441, 0.0000, 0.0199, 0.0000, 0.1301, 0.0000, 0.2438, 0.0000, 0.1170, 0.0000, 0.1046, 0.0000, 0.2093, 0.0000, 0.1046, 0.0000), calibratedClusterGraph.clusterBelief(4).values, 0.0001)
-    vectorAssert(List(0.0265, 0.0000, 0.0441, 0.0000, 0.0199, 0.0000, 0.1301, 0.0000, 0.2438, 0.0000, 0.1170, 0.0000, 0.1046, 0.0000, 0.2093, 0.0000, 0.1046, 0.0000), calibratedClusterGraph.clusterBelief(5).values, 0.0001)
+    assertVector(List(0.0265, 0.0000, 0.0441, 0.0000, 0.0199, 0.0000, 0.1301, 0.0000, 0.2438, 0.0000, 0.1170, 0.0000, 0.1046, 0.0000, 0.2093, 0.0000, 0.1046, 0.0000), calibratedClusterGraph.clusterBelief(4).values, 0.0001)
+    assertVector(List(0.0265, 0.0000, 0.0441, 0.0000, 0.0199, 0.0000, 0.1301, 0.0000, 0.2438, 0.0000, 0.1170, 0.0000, 0.1046, 0.0000, 0.2093, 0.0000, 0.1046, 0.0000), calibratedClusterGraph.clusterBelief(5).values, 0.0001)
 
-    val assignment = List(Assignment("Player1", "1"), Assignment("Player2", "1"), Assignment("Player3", "1"), Assignment("Score12", "W"), Assignment("Score13", "W"))
+    val assignment = List(Assignment("Player1".hashCode(), 0), Assignment("Player2".hashCode(), 0),
+      Assignment("Player3".hashCode(), 0), Assignment("Score12".hashCode(), 0), Assignment("Score13".hashCode(), 0))
     val llh = calibratedClusterGraph.logLikelihood(assignment)
     assertEquals(-4.8598, llh, 0.0001)
   }
@@ -96,17 +97,17 @@ class GenericClusterGraphTennisNetworkTest {
    * Test for log likelihood of evidence
    */
   @Test def single_tennis_result_loglikelihood_of_evidence {
-    val player1Var = Var("Player1", ("1", "2", "3"))
-    val player2Var = Var("Player2", ("1", "2", "3"))
-    val scoreVar = Var("Score", ("W", "L"))
+    val player1Var = Var("Player1".hashCode(), 3)
+    val player2Var = Var("Player2".hashCode(), 3)
+    val scoreVar = Var("Score".hashCode(), 2)
 
-    val clusterPlayer1 = Cluster(1, Factor(List(player1Var), priorProb))
-    val clusterPlayer1WithEvidence = Cluster(1, Factor(List(player1Var), priorProb).evidence(("Player1", "2")))
+    val clusterPlayer1 = Cluster(1, Factor(player1Var, priorProb))
+    val clusterPlayer1WithEvidence = Cluster(1, Factor(player1Var, priorProb).evidence(("Player1".hashCode(), 1)))
 
-    val clusterPlayer2 = Cluster(2, Factor(List(player2Var), priorProb))
+    val clusterPlayer2 = Cluster(2, Factor(player2Var, priorProb))
 
-    val clusterScore = Cluster(3, Factor(List(player1Var, player2Var, scoreVar), emissionProb))
-    val clusterScoreKnown = Cluster(3, Factor(List(player1Var, player2Var, scoreVar), emissionProb).evidence(("Score", "W")))
+    val clusterScore = Cluster(3, Factor(player1Var, player2Var, scoreVar, emissionProb))
+    val clusterScoreKnown = Cluster(3, Factor(player1Var, player2Var, scoreVar, emissionProb).evidence(("Score".hashCode(), 0)))
 
     val edges = List((1, 3), (2, 3))
 
@@ -114,7 +115,7 @@ class GenericClusterGraphTennisNetworkTest {
     val clusterGraph = GenericClusterGraph(List(clusterPlayer1WithEvidence, clusterPlayer2, clusterScoreKnown), edges)
     val calibratedClusterGraph = clusterGraph.calibrate(progress)
 
-    val assignment = List(Assignment("Player1", "2"), Assignment("Player2", "1"), Assignment("Score", "W"))
+    val assignment = List(Assignment("Player1".hashCode(), 1), Assignment("Player2".hashCode(), 0), Assignment("Score".hashCode(), 0))
 
     val llhProduct = clusterGraphNoEvidence.logLikelihood(assignment)
     val llhEvidence = calibratedClusterGraph.logLikelihood(assignment)

@@ -103,7 +103,7 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
   private def addPlayerPriorFactor(playerName: String, timeSlice: Int) {
 
     val playerVar = createPlayerVariable(playerName, timeSlice)
-    val factor = Factor(playerVar, priorProb: _*)
+    val factor = Factor(playerVar, priorProb.toArray)
     factors += factor
 
     addPlayerVariable(timeSlice, playerName, playerVar)
@@ -117,7 +117,7 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
       val varNext = createPlayerVariable(playerName, nextTimeSlice)
       val varValues = (1 to transitionProb.size).map(_.toString)
 
-      val factor = Factor(varCurr, varNext, transitionProb: _*)
+      val factor = Factor(varCurr, varNext, transitionProb.toArray)
       factors += factor
 
       addPlayerVariable(nextTimeSlice, playerName, varNext)
@@ -137,16 +137,16 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
 
     val scoreVarName = "score_%s_%s_%d_%d".format(result.playerA, result.playerB, result.timeSlice, scoreIndex)
     scoreIndex += 1
-    val scoreVar = Var(scoreVarName, ("w", "l"))
+    val scoreVar = Var(scoreVarName.hashCode, 2)
 
     val emissionFactor = Factor(
-      playerAVar :: playerBVar :: scoreVar :: Nil,
-      emissionProb)
+      Array(playerAVar,playerBVar,scoreVar),
+      emissionProb.toArray)
 
-    implicit def booleanToString(value: Boolean): String = if (value) "w" else "l"
+    implicit def booleanToInt(value: Boolean): Int = if (value) 0 else 1
 
     if (result.playerAWinner.isDefined) {
-      val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName, booleanToString(result.playerAWinner.get)))
+      val emissionFactorWithEvidence = emissionFactor.evidence((scoreVarName.hashCode, booleanToInt(result.playerAWinner.get)))
       factors += emissionFactorWithEvidence
     } else {
       factors += emissionFactor
@@ -158,7 +158,7 @@ class GenericDbnTennis(priorProb: Seq[Double], emissionProb: Seq[Double], transi
 
   private def createPlayerVariable(playerName: String, timeSlice: Int): Var = {
     val priorFactorValues = (1 to priorProb.size).map(_.toString)
-    Var("%s_rating_%d".format(playerName, timeSlice), priorFactorValues)
+    Var("%s_rating_%d".format(playerName, timeSlice).hashCode, priorFactorValues.size)
   }
 
   private def playerResultExists(playerName: String, timeSlice: Int): Boolean = getResults().find(r => r.timeSlice == timeSlice && (r.playerA.equals(playerName) || r.playerB.equals(playerName))).isDefined

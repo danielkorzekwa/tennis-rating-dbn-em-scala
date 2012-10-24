@@ -7,7 +7,7 @@ import edu.umass.cs.mallet.grmm.types.TableFactor
 import edu.umass.cs.mallet.grmm.types.Variable
 import edu.umass.cs.mallet.grmm.inference.TreeBP
 import edu.umass.cs.mallet.grmm.inference.JunctionTreeInferencer
-import dk.tennis.em.util.VectorAssert._
+import dk.tennis.em.util.AssertUtil._
 import edu.umass.cs.mallet.grmm.types.AbstractTableFactor
 import edu.umass.cs.mallet.grmm.inference.LoopyBP
 
@@ -41,7 +41,7 @@ class GrmmTest {
 
     val expected = List(0.0278, 0.0278, 0.0185, 0.0370, 0.0139, 0.0417, 0.0741, 0.0370, 0.0556, 0.0556, 0.0444, 0.0667, 0.1250, 0.0417, 0.1000, 0.0667, 0.0833, 0.0833)
     val actual = varMarginal.asInstanceOf[TableFactor].getValues().toList
-    vectorAssert(expected, actual, 0.0001)
+    assertVector(expected, actual, 0.0001)
   }
 
   @Test def inference_Federer_vs_Nadal {
@@ -64,6 +64,6 @@ class GrmmTest {
 
     val expected = List(0.5001, 0.4998)
     val actual = varMarginal.asInstanceOf[TableFactor].getValues().toList
-    vectorAssert(expected, actual, 0.0001)
+    assertVector(expected, actual, 0.0001)
   }
 }

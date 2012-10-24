@@ -3,7 +3,7 @@ package dk.tennis.em.dbn.infer.grmm
 import org.junit._
 import Assert._
 import dk.tennis.em.dbn.infer.InferDbnTennis
-import dk.tennis.em.util.VectorAssert._
+import dk.tennis.em.util.AssertUtil._
 import dk.tennis.em.dbn.infer.InferDbnTennis
 import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 import edu.umass.cs.mallet.grmm.types.Variable

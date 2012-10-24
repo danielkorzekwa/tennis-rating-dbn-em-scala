@@ -36,7 +36,7 @@ trait ClusterGraph {
   def logLikelihood(assignment: Seq[Assignment]): Double
   
   /**Returns marginal factor for a variable in a cluster graph.*/
-  def marginal(varName:String):Factor
+  def marginal(varId:Int):Factor
 
 }
 
@@ -59,5 +59,5 @@ object ClusterGraph {
    * @param variableName Unique identifier of variable
    * @param variableValue Value of variable
    */
-  case class Assignment(variableName: String, variableValue: String)
+  case class Assignment(variableId: Int, valueIndex: Int)
 }

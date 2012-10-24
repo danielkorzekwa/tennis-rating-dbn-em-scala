@@ -31,7 +31,7 @@ case class ClusterLoopyBPInferDbnTennis(clusterGraph: ClusterGraph, originalClus
 
   private def getClusterBeliefs(varNum: Int): Seq[Seq[Double]] = {
     val clusters = clusterGraph.getClusters().filter(c => c.factor.variables.size == varNum)
-    val beliefs = clusters.map(c => clusterGraph.clusterBelief(c.id).normalize().values)
+    val beliefs = clusters.map(c => clusterGraph.clusterBelief(c.id).normalize().values.toSeq)
     beliefs
   }
 
@@ -39,18 +39,18 @@ case class ClusterLoopyBPInferDbnTennis(clusterGraph: ClusterGraph, originalClus
 
     val allVariables = clusterGraph.getClusters().flatMap(c => c.factor.variables).distinct
 
-    val assignment = allVariables.map(v => Assignment(v.name, v.values.head))
+    val assignment = allVariables.map(v => Assignment(v.id, 0))
 
-    val varToResultMap = Map(resultVariables.map { case (r, v) => (v.name, r) }: _*)
+    val varToResultMap = Map(resultVariables.map { case (r, v) => (v.id, r) }: _*)
     val resultToVarMap = Map(resultVariables.map { case (r, v) => (r, v) }: _*)
 
     val assignmentWithEvidence = assignment.map { a =>
-      val result = varToResultMap.get(a.variableName)
+      val result = varToResultMap.get(a.variableId)
       result match {
         case Some(result) => {
           if (result.playerAWinner.isDefined) {
             val variable = resultToVarMap(result)
-            if (result.playerAWinner.get) Assignment(a.variableName, variable.values.head) else Assignment(a.variableName, variable.values.last)
+            if (result.playerAWinner.get) Assignment(a.variableId, 0) else Assignment(a.variableId, 1)
           } else a
         }
         case None => a
@@ -66,13 +66,13 @@ case class ClusterLoopyBPInferDbnTennis(clusterGraph: ClusterGraph, originalClus
 
   def getPlayerAWinningProb(playerA: String, playerB: String, t: Int): Double = {
     val (result, variable) = resultVariables.find { case (r, v) => r.playerA.equals(playerA) && r.playerB.equals(playerB) && r.timeSlice == t && r.playerAWinner.isEmpty }.get
-    val marginalFactor = clusterGraph.marginal(variable.name)
+    val marginalFactor = clusterGraph.marginal(variable.id)
     marginalFactor.values(0)
   }
 
   def getPlayerRating(playerName: String, timeSlice: Int): Seq[Double] = {
      val playerVariable = playerVariables(timeSlice)(playerName)
-    val playerMarginal = clusterGraph.marginal(playerVariable.name)
+    val playerMarginal = clusterGraph.marginal(playerVariable.id)
     val ratingProbabilities = playerMarginal.values
     ratingProbabilities
   }

@@ -8,14 +8,14 @@ case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
 
   require(!factors.isEmpty, "List of factors is empty")
 
-  val fullJoin = factors.head.product(factors.tail: _*)
+  val fullJoin = factors.head.product(factors.tail)
 
   /**@see InferDbnTennis.*/
   def getRatingPriorProbabilities(): Seq[Seq[Double]] = {
 
     val priorFactors = marginalizeFactors(factors, 1)
 
-    val priorProbs = priorFactors.map(f => f.values)
+    val priorProbs = priorFactors.map(f => f.values.toSeq)
     priorProbs
 
   }
@@ -25,7 +25,7 @@ case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
 
     val emissionFactorsWithEvidence = marginalizeFactors(factors, 3)
 
-    val emissionProbs = emissionFactorsWithEvidence.map(f => f.values)
+    val emissionProbs = emissionFactorsWithEvidence.map(f => f.values.toSeq)
     emissionProbs
   }
 
@@ -34,7 +34,7 @@ case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
 
     val transitionFactors = marginalizeFactors(factors, 2)
 
-    val transitionProbs = transitionFactors.map(f => f.values)
+    val transitionProbs = transitionFactors.map(f => f.values.toSeq)
     transitionProbs
 
   }
@@ -47,7 +47,7 @@ case class GenericInferDbnTennis(factors: Seq[Factor]) extends InferDbnTennis {
 
     val filteredFactors = factors.filter(f => f.variables.size == factorVarNum)
 
-    val marginalsWithEvidence = filteredFactors.map(f => fullJoin.marginal(f.variables.map(v => v.name): _*).normalize())
+    val marginalsWithEvidence = filteredFactors.map(f => fullJoin.marginal(f.variables.map(v => v.id)).normalize())
 
     marginalsWithEvidence
 

@@ -24,13 +24,13 @@ case class GrmmInferDbnTennisFactory extends InferDbnTennisFactory {
     val dbnTennisWithoutEvidence = toDBNTennis(results.map(r => r.copy(playerAWinner = None)), priorProb, emissionProb, transitionProb)
 
     /**Map[variableId,variable]*/
-    val grmmVariablesMap: Map[String, Variable] = toGrmmVariables(dbnTennisWithEvidence.getFactors())
+    val grmmVariablesMap: Map[Int, Variable] = toGrmmVariables(dbnTennisWithEvidence.getFactors())
 
-    val resultsVariables = dbnTennisWithEvidence.getResultVariables().map{case(result,variable) => (result,grmmVariablesMap(variable.name))}
+    val resultsVariables = dbnTennisWithEvidence.getResultVariables().map{case(result,variable) => (result,grmmVariablesMap(variable.id))}
 
     val playerVariables: immutable.Map[Int,immutable.Map[String,Variable]] = dbnTennisWithEvidence.getPlayerVariables().mapValues{
       timeSliceVariables =>
-        timeSliceVariables.mapValues(variable => grmmVariablesMap(variable.name))
+        timeSliceVariables.mapValues(variable => grmmVariablesMap(variable.id))
     }
     
     val inferDbnTennis = GrmmInferDbnTennis(
@@ -43,14 +43,14 @@ case class GrmmInferDbnTennisFactory extends InferDbnTennisFactory {
     inferDbnTennis
   }
 
-  private def toGrmmFactor(factor: Factor, grmmVariablesMap: Map[String, Variable]): LogTableFactor = {
-    val variables = factor.variables.map(v => grmmVariablesMap(v.name)).toArray
+  private def toGrmmFactor(factor: Factor, grmmVariablesMap: Map[Int, Variable]): LogTableFactor = {
+    val variables = factor.variables.map(v => grmmVariablesMap(v.id)).toArray
     LogTableFactor.makeFromValues(variables, factor.values.toArray)
   }
 
-  private def toGrmmVariables(factors: Seq[Factor]): Map[String, Variable] = Map(factors.flatMap(_.variables).map(v => v.name -> new Variable(v.values.size)): _*)
+  private def toGrmmVariables(factors: Seq[Factor]): Map[Int, Variable] = Map(factors.flatMap(_.variables).map(v => v.id -> new Variable(v.dim)): _*)
 
-  private def toGrmmFactorGraph(factors: Seq[Factor], grmmVariablesMap: Map[String, Variable]): FactorGraph = {
+  private def toGrmmFactorGraph(factors: Seq[Factor], grmmVariablesMap: Map[Int, Variable]): FactorGraph = {
     val factorGraph = new FactorGraph(grmmVariablesMap.values.toArray)
     factors.map(f => toGrmmFactor(f, grmmVariablesMap)).foreach(f => factorGraph.addFactor(f))
     factorGraph
