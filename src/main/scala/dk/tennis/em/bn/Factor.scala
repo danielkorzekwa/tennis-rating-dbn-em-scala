@@ -67,7 +67,7 @@ case class Factor(variables: Array[Var], values: Array[Double]) {
    *
    */
   def product(factors: Seq[Factor], variableMapping: Option[(Factor, Factor) => Array[VariableMapping]] = None): Factor = {
-    factors.foldLeft(this)((factorProduct, factor) => productTwoFactors(factorProduct, factor,variableMapping))
+    factors.foldLeft(this)((factorProduct, factor) => productTwoFactors(factorProduct, factor, variableMapping))
   }
   def productSingle(factor: Factor, variableMapping: Option[(Factor, Factor) => Array[VariableMapping]] = None): Factor = productTwoFactors(this, factor, variableMapping)
 
@@ -190,15 +190,35 @@ case class Factor(variables: Array[Var], values: Array[Double]) {
    * @return Marginals over variables specified by 'variableNames' parameter.
    *
    */
-  def marginal(variableId: Int): Factor = marginal(List(variableId))
-  def marginal(variableIds: Seq[Int]): Factor = {
+  def marginal(variableId: Int): Factor = marginal(Array(variableId))
+  def marginal(variableIds: Array[Int]): Factor = {
     require(!variableIds.isEmpty, "List of marginal variables is empty")
 
-    val marginalVariables: Array[Var] = variables.filter { v => variableIds.contains(v.id) }
-    val marginalDimensions = marginalVariables.map(v => v.dim)
-    val marginalValues = new Array[Double](marginalDimensions.product)
+    val marginalVariables = new Array[Var](variableIds.size)
 
-    val marginalStepSizes: Seq[Int] = calcStepSizes(marginalVariables)
+    var marginalDimProduct = 1
+    var marginalVarIndex = 0
+    var i = 0
+    while (i < variables.size) {
+      val variable = variables(i)
+
+      var j = 0
+      var continue = true
+      while (j < variableIds.size && continue) {
+        if (variable.id == variableIds(j)) {
+          marginalVariables(marginalVarIndex) = variable
+          marginalDimProduct *= variable.dim
+          marginalVarIndex += 1
+          continue = false
+        }
+        j += 1
+      }
+      i += 1
+    }
+
+    val marginalValues = new Array[Double](marginalDimProduct)
+
+    val marginalStepSizes: Array[Int] = calcStepSizes(marginalVariables)
     val marginalStepMappings = calcStepMappings(marginalVariables, marginalStepSizes, variables)
 
     val dimensions = variables.map(_.dim)
@@ -206,7 +226,7 @@ case class Factor(variables: Array[Var], values: Array[Double]) {
     var assignment: Array[Int] = new Array(dimensions.size)
 
     val dimProduct = dimensions.product
-    var i = 0
+    i = 0
     while (i < dimProduct) {
 
       marginalValues(marginalIndex) += values(i)
@@ -231,35 +251,49 @@ case class Factor(variables: Array[Var], values: Array[Double]) {
     }
 
     Factor(marginalVariables, marginalValues)
+
   }
 
   /**Returns mapping between factor and variables*/
-  def calcStepMappings(factorVariables: Seq[Var], factorStepSizes: Seq[Int], variables: Seq[Var]): Seq[Int] =
-    variables.map { v =>
-      val varMappingIndex = factorVariables.indexOf(v)
-      if (varMappingIndex >= 0) factorStepSizes(varMappingIndex) else 0
-    }
+  def calcStepMappings(factorVariables: Array[Var], factorStepSizes: Array[Int], variables: Array[Var]): Array[Int] = {
 
+    val stepMapping = new Array[Int](variables.size)
+
+    var i = 0
+    while (i < variables.size) {
+      val variable = variables(i)
+      val varMappingIndex = factorVariables.indexWhere(v => v.id == variable.id)
+      stepMapping(i) = if (varMappingIndex >= 0) factorStepSizes(varMappingIndex) else 0
+      i += 1
+    }
+    stepMapping
+  }
   /**
    * Calculates step sizes for dimensions.
    * @returns Step size - how many steps are there before reaching next assignment for a given dimension.
    */
   private def calcStepSizes(variables: Array[Var]): Array[Int] = {
 
-    val stepSizes = new Array[Int](variables.size)
+    val variablesSize = variables.size
 
-    var i = 0
-    while (i < stepSizes.size) {
-      stepSizes(i) = 1
-      var j = i + 1
-      while (j < stepSizes.size) {
-        stepSizes(i) *= variables(j).dim
-        j += 1
+    val stepSizes = if (variablesSize == 1) Array(1)
+    else {
+      val stepSizes = new Array[Int](variablesSize)
+
+      var i = 0
+      while (i < variablesSize) {
+        stepSizes(i) = 1
+        var j = i + 1
+        while (j < variablesSize) {
+          stepSizes(i) *= variables(j).dim
+          j += 1
+        }
+        i += 1
       }
-      i += 1
+      stepSizes
     }
-
     stepSizes
+
   }
 
   /**Normalize all factor values so they sum up to 1.*/

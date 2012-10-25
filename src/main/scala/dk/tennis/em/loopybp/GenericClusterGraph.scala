@@ -81,7 +81,7 @@ case class GenericClusterGraph(clusters: Seq[Cluster], threashold: Double = 0.00
     var varNames = List[Int]()
 
     for (v <- edge.messageOut.newFactor.variables) { varNames = v.id :: varNames }
-    val newMessageOutMarginal = newMessageOutFactor.marginal(varNames).normalize()
+    val newMessageOutMarginal = newMessageOutFactor.marginal(varNames.toArray).normalize()
 
     edge.messageOut.oldFactor = edge.messageOut.newFactor
     edge.messageOut.newFactor = newMessageOutMarginal
