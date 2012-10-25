@@ -196,10 +196,12 @@ case class Factor(variables: Array[Var], values: Array[Double]) {
 
     val marginalVariables = new Array[Var](variableIds.size)
 
+    val variablesSize = variables.size
+    var variablesDimProduct = 1
     var marginalDimProduct = 1
     var marginalVarIndex = 0
     var i = 0
-    while (i < variables.size) {
+    while (i < variablesSize) {
       val variable = variables(i)
 
       var j = 0
@@ -208,11 +210,13 @@ case class Factor(variables: Array[Var], values: Array[Double]) {
         if (variable.id == variableIds(j)) {
           marginalVariables(marginalVarIndex) = variable
           marginalDimProduct *= variable.dim
+
           marginalVarIndex += 1
           continue = false
         }
         j += 1
       }
+      variablesDimProduct *= variable.dim
       i += 1
     }
 
@@ -221,32 +225,28 @@ case class Factor(variables: Array[Var], values: Array[Double]) {
     val marginalStepSizes: Array[Int] = calcStepSizes(marginalVariables)
     val marginalStepMappings = calcStepMappings(marginalVariables, marginalStepSizes, variables)
 
-    val dimensions = variables.map(_.dim)
     var marginalIndex = 0
-    var assignment: Array[Int] = new Array(dimensions.size)
+    var assignment: Array[Int] = new Array(variablesSize)
 
-    val dimProduct = dimensions.product
     i = 0
-    while (i < dimProduct) {
+    while (i < variablesDimProduct) {
 
       marginalValues(marginalIndex) += values(i)
 
-      var dimIndex = dimensions.size - 1
+      var dimIndex = variablesSize - 1
       var continue = true
       while (continue && dimIndex >= 0) {
 
-        if (assignment(dimIndex) != dimensions(dimIndex) - 1) {
+        if (assignment(dimIndex) != variables(dimIndex).dim - 1) {
           assignment(dimIndex) += 1
           marginalIndex += marginalStepMappings(dimIndex)
           continue = false
         } else {
-          marginalIndex -= (dimensions(dimIndex) - 1) * marginalStepMappings(dimIndex)
+          marginalIndex -= (variables(dimIndex).dim - 1) * marginalStepMappings(dimIndex)
           assignment(dimIndex) = 0
         }
-
         dimIndex -= 1
       }
-
       i += 1
     }
 
@@ -267,6 +267,7 @@ case class Factor(variables: Array[Var], values: Array[Double]) {
       i += 1
     }
     stepMapping
+
   }
   /**
    * Calculates step sizes for dimensions.
@@ -276,21 +277,19 @@ case class Factor(variables: Array[Var], values: Array[Double]) {
 
     val variablesSize = variables.size
 
-    val stepSizes = if (variablesSize == 1) Array(1)
-    else {
-      val stepSizes = new Array[Int](variablesSize)
+    val stepSizes = new Array[Int](variablesSize)
+    if (variablesSize == 1) {
+      stepSizes(0) = 1
+    } else {
 
-      var i = 0
-      while (i < variablesSize) {
-        stepSizes(i) = 1
-        var j = i + 1
-        while (j < variablesSize) {
-          stepSizes(i) *= variables(j).dim
-          j += 1
-        }
-        i += 1
+      var i = variablesSize - 1
+      var product = 1
+      while (i >= 0) {
+        stepSizes(i) = product
+        product *= variables(i).dim
+        i -= 1
       }
-      stepSizes
+
     }
     stepSizes
 

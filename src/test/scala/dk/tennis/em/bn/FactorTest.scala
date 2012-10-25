@@ -192,7 +192,7 @@ class FactorTest {
     val factorScore = Factor(Var(1, 3), Var(2, 3), Var(3, (2)), Array(0.5, 0.5, 1d / 3, 2d / 3, 0.25, 0.75, 2d / 3, 1d / 3, 0.5, 0.5, 0.4, 0.6, 0.75, 0.25, 0.6, 0.4, 0.5, 0.5))
     val fullJoinFactor = factorR1.productSingle(factorR2).productSingle(factorScore)
 
-    for (i <- 0 until 10000000) fullJoinFactor.marginal(2)
+    for (i <- 0 until 20000000) fullJoinFactor.marginal(2)
   }
 
   @Test def marginal_single_variable_with_single_evidence {
