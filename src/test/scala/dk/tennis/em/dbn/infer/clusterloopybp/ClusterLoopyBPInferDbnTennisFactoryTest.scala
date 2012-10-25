@@ -136,14 +136,14 @@ class ClusterLoopyBPInferDbnTennisFactoryTest {
     val results = List(Result("playerA", "playerB", true, 8))
 
     val transitionProbs = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).getRatingTransitionProbabilities()
-    assertEquals(Nil, transitionProbs)
+    assertEquals(Nil, transitionProbs.toList)
   }
 
   @Test def getRatingTransitionProbabilities_two_results_in_time_8 {
     val results = List(Result("playerA", "playerB", true, 8), Result("playerA", "playerC", false, 8))
 
     val transitionProbs = createInferDbnTennis(results, priorProb, emissionProb, transitionProb).getRatingTransitionProbabilities()
-    assertEquals(Nil, transitionProbs)
+    assertEquals(Nil, transitionProbs.toList)
   }
 
   @Test def getRatingTransitionProbabilities_AB_in_time_8_BC_in_time_9 {

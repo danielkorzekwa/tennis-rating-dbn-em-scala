@@ -19,10 +19,7 @@ import scala.Math._
  * @param threashold Stopping criteria for calibration process.
  * The difference between all pairs of old and new messages in a cluster graph must be lower than threshold value.
  */
-case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], threashold: Double = 0.00001) extends ClusterGraph {
-
-  private val msgByDestClusterId: Map[Int, Seq[Message]] = messages.groupBy(m => m.destClusterId)
-  private val msgBySrcClusterId: Map[Int, Seq[Message]] = messages.groupBy(m => m.srcClusterId)
+case class GenericClusterGraph(clusters: Seq[Cluster], threashold: Double = 0.00001) extends ClusterGraph {
 
   def calibrate(iterNum: (Int) => Unit): ClusterGraph = {
 
@@ -58,7 +55,8 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
    * @return New set of messages computed for a cluster
    */
   private def updateClusterMessages(cluster: Cluster) {
-    val messagesOut = msgBySrcClusterId(cluster.id)
+
+    val messagesOut = cluster.edges
     messagesOut.foreach(m => updateMessage(cluster, m))
   }
 
@@ -71,21 +69,22 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
    * @return New computed message
    *
    */
-  private def updateMessage(cluster: Cluster, message: Message) {
-    val messagesInButOne = msgByDestClusterId(cluster.id).filter(m => m.srcClusterId != message.destClusterId)
+  private def updateMessage(cluster: Cluster, edge: Edge) {
+
+    val messagesInButOne = cluster.edges.filter(e => e.destClusterId != edge.destClusterId)
 
     var factors = List[Factor]()
 
-    for (m <- messagesInButOne) { factors = m.newFactor :: factors }
+    for (m <- messagesInButOne) { factors = m.messageIn.newFactor :: factors }
     val newMessageOutFactor = cluster.factor.product(factors, Option(variableMapping))
 
     var varNames = List[Int]()
 
-    for (v <- message.newFactor.variables) { varNames = v.id :: varNames }
+    for (v <- edge.messageOut.newFactor.variables) { varNames = v.id :: varNames }
     val newMessageOutMarginal = newMessageOutFactor.marginal(varNames).normalize()
 
-    message.oldFactor = message.newFactor
-    message.newFactor = newMessageOutMarginal
+    edge.messageOut.oldFactor = edge.messageOut.newFactor
+    edge.messageOut.newFactor = newMessageOutMarginal
   }
 
   def variableMapping(factorA: Factor, factorB: Factor): Array[VariableMapping] = {
@@ -103,7 +102,7 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
 
   def clusterBelief(clusterId: Int): Factor = {
     val cluster = clusters.find(c => c.id == clusterId).get
-    val messagesIn = messages.filter(m => m.destClusterId == cluster.id)
+    val messagesIn = cluster.edges.map(e => e.messageIn)
     val factorsIn = messagesIn.map(m => m.newFactor)
 
     val clusterBelief = cluster.factor.product(factorsIn)
@@ -120,10 +119,12 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
 
     val clustersLoglikelihood = clusters.map(c => log(likelihood(clusterBelief(c.id), assignment))).sum
 
-    val sepsetBeliefs: Seq[Factor] = messages.filter(m => m.srcClusterId > m.destClusterId).map { m =>
-      val linkedMessage = messages.find(msg => msg.srcClusterId == m.destClusterId && msg.destClusterId == m.srcClusterId).get
-      m.newFactor.productSingle(linkedMessage.newFactor).normalize()
+    val sepsetBeliefs: Seq[Factor] = clusters.flatMap { c =>
+      val edges = c.edges.filter(e => c.id > e.destClusterId)
+      val sepsetBeliefs = edges.map(e => e.messageIn.newFactor.productSingle(e.messageOut.newFactor).normalize())
+      sepsetBeliefs
     }
+
     val sepsetLoglikelihood = sepsetBeliefs.map(b => log(likelihood(b, assignment))).sum
 
     clustersLoglikelihood - sepsetLoglikelihood
@@ -153,10 +154,10 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
   /**Returns true if this cluster is calibrated with that cluster.*/
   private def isCalibrated(): Boolean = {
 
-    val notCalibratedCluster = msgBySrcClusterId.find {
-      case (clusterId, messages) =>
+    val notCalibratedCluster = clusters.find {
+      case c =>
 
-        val notCalibratedMsg = messages.find { msg => !messagesCalibrated(msg) }
+        val notCalibratedMsg = c.edges.map(_.messageOut).find { msg => !messagesCalibrated(msg) }
 
         !notCalibratedMsg.isEmpty
     }
@@ -177,17 +178,6 @@ case class GenericClusterGraph(clusters: Seq[Cluster], messages: Seq[Message], t
 object GenericClusterGraph {
 
   /**
-   * Message sent between clusters.
-   *
-   * @constructor Creates message, which is sent between clusters
-   *
-   * @param srcClusterId Cluster sending this message
-   * @param destClusterId Cluster receiving this message
-   * @param factor Factor to be sent between clusters
-   */
-  case class Message(srcClusterId: Int, destClusterId: Int, var oldFactor: Factor, var newFactor: Factor)
-
-  /**
    * Creates cluster graph.
    *
    * @param clusters Clusters to be added to cluster graph
@@ -197,16 +187,22 @@ object GenericClusterGraph {
    */
   def apply(clusters: Seq[Cluster], edges: Seq[Tuple2[Int, Int]]): ClusterGraph = {
 
-    val messages = edges.flatMap {
+    edges.foreach {
       case (clusterId1, clusterId2) =>
         val cluster1 = clusters.find(c => c.id == clusterId1).get
         val cluster2 = clusters.find(c => c.id == clusterId2).get
         val sepset = calcSepset(cluster1, cluster2)
 
-        List(Message(clusterId1, clusterId2, sepset, sepset), Message(clusterId2, clusterId1, sepset, sepset))
-    }
+        val message12 = Message(sepset, sepset)
+        val message21 = Message(sepset, sepset)
 
-    GenericClusterGraph(clusters, messages)
+        val edge12 = Edge(clusterId2, message21, message12)
+        val edge21 = Edge(clusterId1, message12, message21)
+
+        cluster1.edges = edge12 :: cluster1.edges
+        cluster2.edges = edge21 :: cluster2.edges
+    }
+    GenericClusterGraph(clusters)
   }
 
   /**

@@ -105,6 +105,7 @@ class GenericClusterGraphTennisNetworkTest {
     val clusterPlayer1WithEvidence = Cluster(1, Factor(player1Var, priorProb).evidence(("Player1".hashCode(), 1)))
 
     val clusterPlayer2 = Cluster(2, Factor(player2Var, priorProb))
+    val clusterPlayer2WithEvidence = Cluster(2, Factor(player2Var, priorProb))
 
     val clusterScore = Cluster(3, Factor(player1Var, player2Var, scoreVar, emissionProb))
     val clusterScoreKnown = Cluster(3, Factor(player1Var, player2Var, scoreVar, emissionProb).evidence(("Score".hashCode(), 0)))
@@ -112,13 +113,13 @@ class GenericClusterGraphTennisNetworkTest {
     val edges = List((1, 3), (2, 3))
 
     val clusterGraphNoEvidence = GenericClusterGraph(List(clusterPlayer1, clusterPlayer2, clusterScore), edges)
-    val clusterGraph = GenericClusterGraph(List(clusterPlayer1WithEvidence, clusterPlayer2, clusterScoreKnown), edges)
-    val calibratedClusterGraph = clusterGraph.calibrate(progress)
+    val clusterGraph = GenericClusterGraph(List(clusterPlayer1WithEvidence, clusterPlayer2WithEvidence, clusterScoreKnown), edges)
+    clusterGraph.calibrate(progress)
 
     val assignment = List(Assignment("Player1".hashCode(), 1), Assignment("Player2".hashCode(), 0), Assignment("Score".hashCode(), 0))
 
     val llhProduct = clusterGraphNoEvidence.logLikelihood(assignment)
-    val llhEvidence = calibratedClusterGraph.logLikelihood(assignment)
+    val llhEvidence = clusterGraph.logLikelihood(assignment)
 
     assertEquals(-2.7080, llhProduct, 0.0001)
     assertEquals(-1.3284, llhEvidence, 0.0001)

@@ -5,7 +5,6 @@ import Assert._
 import dk.atp.api.CSVATPMatchesLoader
 import dk.atp.api.domain.MatchComposite
 import dk.atp.api.domain.SurfaceEnum._
-import dbn.infer.grmm.GrmmInferDbnTennisFactory
 import EMTrain.Params
 import scala.util.Random
 import org.joda.time.DateTime

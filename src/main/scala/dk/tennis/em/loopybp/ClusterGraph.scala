@@ -34,9 +34,9 @@ trait ClusterGraph {
 
   /**Returns log likelihood of assignment for all variables in a factor graph.*/
   def logLikelihood(assignment: Seq[Assignment]): Double
-  
+
   /**Returns marginal factor for a variable in a cluster graph.*/
-  def marginal(varId:Int):Factor
+  def marginal(varId: Int): Factor
 
 }
 
@@ -48,9 +48,23 @@ object ClusterGraph {
    * @constructor Creates new cluster
    * @param id Unique cluster id
    * @param factor Initial cluster potential
+   * @param edges Edges between this and other clusters in a cluster graph
    */
-  case class Cluster(id: Int, factor: Factor)
+  case class Cluster(id: Int, factor: Factor, var edges: List[Edge]=Nil)
 
+  case class Edge(destClusterId: Int, messageIn: Message, messageOut: Message)
+
+   /**
+   * Message sent between clusters.
+   *
+   * @constructor Creates message, which is sent between clusters
+   *
+   * @param srcClusterId Cluster sending this message
+   * @param destClusterId Cluster receiving this message
+   * @param factor Factor to be sent between clusters
+   */
+  case class Message(var oldFactor: Factor, var newFactor: Factor)
+  
   /**
    * Assignment of a value to a variable.
    *

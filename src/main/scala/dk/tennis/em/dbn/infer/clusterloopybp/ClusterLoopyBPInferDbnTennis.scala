@@ -23,16 +23,16 @@ import dk.tennis.em.bn.Factor.Var
 case class ClusterLoopyBPInferDbnTennis(clusterGraph: ClusterGraph, originalClusterGraph: ClusterGraph,
   resultVariables: Seq[Tuple2[Result, Var]], playerVariables: Map[Int, Map[String, Var]]) extends InferDbnTennis {
 
-  def getRatingPriorProbabilities(): Seq[Seq[Double]] = getClusterBeliefs(1)
+  def getRatingPriorProbabilities(): Array[Array[Double]] = getClusterBeliefs(1)
 
-  def getScoreEmissionProbabilities(): Seq[Seq[Double]] = getClusterBeliefs(3)
+  def getScoreEmissionProbabilities(): Array[Array[Double]] = getClusterBeliefs(3)
 
-  def getRatingTransitionProbabilities(): Seq[Seq[Double]] = getClusterBeliefs(2)
+  def getRatingTransitionProbabilities(): Array[Array[Double]] = getClusterBeliefs(2)
 
-  private def getClusterBeliefs(varNum: Int): Seq[Seq[Double]] = {
+  private def getClusterBeliefs(varNum: Int): Array[Array[Double]] = {
     val clusters = clusterGraph.getClusters().filter(c => c.factor.variables.size == varNum)
-    val beliefs = clusters.map(c => clusterGraph.clusterBelief(c.id).normalize().values.toSeq)
-    beliefs
+    val beliefs = clusters.map(c => clusterGraph.clusterBelief(c.id).normalize().values.toArray)
+    beliefs.toArray
   }
 
   def logLikelihood(): Double = {
@@ -70,7 +70,7 @@ case class ClusterLoopyBPInferDbnTennis(clusterGraph: ClusterGraph, originalClus
     marginalFactor.values(0)
   }
 
-  def getPlayerRating(playerName: String, timeSlice: Int): Seq[Double] = {
+  def getPlayerRating(playerName: String, timeSlice: Int): Array[Double] = {
      val playerVariable = playerVariables(timeSlice)(playerName)
     val playerMarginal = clusterGraph.marginal(playerVariable.id)
     val ratingProbabilities = playerMarginal.values

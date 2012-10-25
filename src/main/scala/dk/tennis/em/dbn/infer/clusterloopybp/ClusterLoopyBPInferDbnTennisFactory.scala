@@ -20,13 +20,13 @@ case class ClusterLoopyBPInferDbnTennisFactory extends InferDbnTennisFactory {
 
     require(results.size > 0, "Results can't be empty")
 
-    val dbnTennisWithEvidence = toDBNTennis(results, priorProb, emissionProb, transitionProb)
-    val dbnTennisWithoutEvidence = toDBNTennis(results.map(r => r.copy(playerAWinner = None)), priorProb, emissionProb, transitionProb)
+    val dbnTennisWithEvidence = toDBNTennis(results, priorProb.toArray, emissionProb.toArray, transitionProb.toArray)
+    val dbnTennisWithoutEvidence = toDBNTennis(results.map(r => r.copy(playerAWinner = None)), priorProb.toArray, emissionProb.toArray, transitionProb.toArray)
 
-    val clusters = dbnTennisWithEvidence.getFactors.zipWithIndex.map { case (f, index) => Cluster(index, f) }
-    val clustersNoEvidence = dbnTennisWithoutEvidence.getFactors.zipWithIndex.map { case (f, index) => Cluster(index, f) }
+    val clusters = dbnTennisWithEvidence.asInstanceOf[GenericDbnTennis2].clusters
+    val clustersNoEvidence = dbnTennisWithoutEvidence.asInstanceOf[GenericDbnTennis2].clusters
 
-    val edges = calcEdges(clusters)
+    val edges = dbnTennisWithoutEvidence.asInstanceOf[GenericDbnTennis2].edges.toList
 
     val clusterGraph = GenericClusterGraph(clusters, edges)
     val calibratedClusterGraph = clusterGraph.calibrate(iter => { println("Loopy BP iter=" + iter) })
@@ -35,31 +35,10 @@ case class ClusterLoopyBPInferDbnTennisFactory extends InferDbnTennisFactory {
     ClusterLoopyBPInferDbnTennis(calibratedClusterGraph, clusterGraphNoEvidence, dbnTennisWithEvidence.getResultVariables(), dbnTennisWithEvidence.getPlayerVariables())
   }
 
-  private def calcEdges(clusters: Seq[Cluster]) = {
-    val scoreEdges = clusters.filter(cluster => cluster.factor.variables.size == 3).flatMap { scoreCluster =>
-      val playerClusters = clusters.filter(c => c.factor.variables.size < 3 && scoreCluster.factor.variables.map(_.id).contains(c.factor.variables.last.id))
+ 
 
-      playerClusters.map(playerCluster => (playerCluster.id, scoreCluster.id))
-    }
-
-    val transitionEdges: Seq[Tuple2[Int, Int]] = clusters.filter(cluster => cluster.factor.variables.size == 2).map { transitionCluster =>
-
-      val prevCluster = clusters.find(c => c.factor.variables.size == 2 && c.factor.variables.last.id == transitionCluster.factor.variables.head.id)
-      val edge = prevCluster match {
-        case Some(prevCluster) => (prevCluster.id, transitionCluster.id)
-        case None => {
-          val priorCluster = clusters.find(c => c.factor.variables.size == 1 && c.factor.variables.last.id == transitionCluster.factor.variables.head.id).get
-          (priorCluster.id, transitionCluster.id)
-        }
-      }
-      edge
-    }
-
-    scoreEdges.toList ::: transitionEdges.toList
-  }
-
-  private def toDBNTennis(results: Seq[Result], priorProb: Seq[Double], emissionProb: Seq[Double], transitionProb: Seq[Double]): DbnTennis = {
-    val dbnTennis = new GenericDbnTennis(priorProb, emissionProb, transitionProb)
+  private def toDBNTennis(results: Seq[Result], priorProb: Array[Double], emissionProb: Array[Double], transitionProb: Array[Double]): DbnTennis = {
+    val dbnTennis = new GenericDbnTennis2(priorProb, emissionProb, transitionProb)
     results.foreach(r => dbnTennis.addResult(r))
     dbnTennis
   }

@@ -4,20 +4,18 @@ import org.junit._
 import Assert._
 import EMTrain._
 import dk.tennis.em.util.AssertUtil._
-import dk.tennis.em.dbn.infer.grmm.GrmmInferDbnTennisFactory
 import scala.util.Random
 import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 import dk.tennis.em.dbn.infer.clusterloopybp.ClusterLoopyBPInferDbnTennisFactory
-import dk.tennis.em.dbn.infer.grmm.GrmmInferDbnTennisFactory
+
 
 class GenericEMTrainGrmmInferenceTest {
 
   val emTrain = new GenericEMTrain(ClusterLoopyBPInferDbnTennisFactory())
-  // val emTrain = new GenericEMTrain(GrmmInferDbnTennisFactory())
+ 
+  val priorProb = Array(0.2, 0.5, 0.3)
 
-  val priorProb = List(0.2, 0.5, 0.3)
-
-  val emissionProb = List(
+  val emissionProb = Array(
     0.5, 0.5,
     1d / 3, 2d / 3,
     0.25, 0.75,
@@ -28,7 +26,7 @@ class GenericEMTrainGrmmInferenceTest {
     3d / 5, 2d / 5,
     0.5, 0.5)
 
-  val transitionProb = List(0.98, 0.01, 0.01, 0.01, 0.98, 0.01, 0.01, 0.02, 0.97)
+  val transitionProb = Array(0.98, 0.01, 0.01, 0.01, 0.98, 0.01, 0.01, 0.02, 0.97)
 
   val parameters = Params(priorProb, emissionProb, transitionProb)
 

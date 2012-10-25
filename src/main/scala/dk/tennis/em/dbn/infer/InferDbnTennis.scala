@@ -17,7 +17,7 @@ trait InferDbnTennis {
    * Three rating values: 0,1,2 with probabilities 0.2 0.5 0.3 respectively for the first player.
    *
    */
-  def getRatingPriorProbabilities(): Seq[Seq[Double]]
+  def getRatingPriorProbabilities(): Array[Array[Double]]
 
   /**
    * Returns normalised score emission probabilities for all scores.
@@ -43,7 +43,7 @@ trait InferDbnTennis {
    * 1,0,l - 1/3
    * ...
    */
-  def getScoreEmissionProbabilities(): Seq[Seq[Double]]
+  def getScoreEmissionProbabilities(): Array[Array[Double]]
 
   /**
    * Returns normalised transition probabilities between player rating probabilities in times t and t + 1.
@@ -61,7 +61,7 @@ trait InferDbnTennis {
    * 1,2 - 0.02
    * ...
    */
-  def getRatingTransitionProbabilities(): Seq[Seq[Double]]
+  def getRatingTransitionProbabilities(): Array[Array[Double]]
   
   /**Calculates log likelihood of a dbn network.*/
   def logLikelihood():Double
@@ -71,6 +71,6 @@ trait InferDbnTennis {
   
   /**@return Probabilities of rating values, e.g. The list [0.2,0.5,0.6] represents probabilities for rating values [1,2,3]
    */
-  def getPlayerRating(playerName:String,timeSlice:Int):Seq[Double]
+  def getPlayerRating(playerName:String,timeSlice:Int):Array[Double]
 
 }

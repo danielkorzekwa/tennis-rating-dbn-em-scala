@@ -15,16 +15,16 @@ import dk.tennis.em.dbn.factorgraph.DbnTennis.Result
 object GenericEMTrain {
 
   /**Adds up corresponding elements in two sequences (Adding up two vectors).*/
-  implicit def toRichSeq(orig: Seq[Double]) = new {
-    def +(seq: Seq[Double]): Seq[Double] = orig.zip(seq).map(e => e._1 + e._2)
+  implicit def toRichSeq(orig: Array[Double]) = new {
+    def +(seq: Array[Double]): Array[Double] = orig.zip(seq).map(e => e._1 + e._2)
   }
 
   /**Adding up corresponding elements in multiple sequences.*/
-  private def sum(vectors: Seq[Seq[Double]]): Seq[Double] = {
-    vectors match {
-      case Nil => Nil
-      case x :: xs => vectors.reduceLeft { (reduced, rating) => (reduced + rating) }
-    }
+  private def sum(vectors: Array[Array[Double]]): Array[Double] = {
+    
+
+    if(vectors.isEmpty) Array[Double]() else  vectors.reduceLeft { (reduced, rating) => (reduced + rating) }
+   
 
   }
 }
