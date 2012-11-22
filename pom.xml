@@ -4,9 +4,9 @@
 
 	<!-- Project information -->
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>dk.tennis.em</groupId>
-	<artifactId>tennis-rating-em</artifactId>
-	<name>tennis-rating-em</name>
+	<groupId>dk.tennis.dbn</groupId>
+	<artifactId>tennis-rating-dbn</artifactId>
+	<name>tennis-rating-dbn</name>
 	<version>0.1-SNAPSHOT</version>
 	<inceptionYear>2011</inceptionYear>
 	<url>https://github.com/danielkorzekwa/tennis-rating-dbn-em-scala</url>
@@ -107,7 +107,12 @@
 
 	<!-- Dependency management -->
 	<dependencies>
-
+	
+		<dependency>
+			<groupId>dk.bayes</groupId>
+			<artifactId>bayes-scala</artifactId>
+			<version>0.2-SNAPSHOT</version>
+		</dependency>
 
 		<!-- External dependencies -->
 		<dependency>
@@ -131,6 +136,18 @@
 			<groupId>jgrapht</groupId>
 			<artifactId>jgrapht</artifactId>
 			<version>0.6.0</version>
+		</dependency>
+		
+			<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.joda</groupId>
+			<artifactId>joda-convert</artifactId>
+			<version>1.1</version>
 		</dependency>
 
 		<!-- Test dependencies -->
