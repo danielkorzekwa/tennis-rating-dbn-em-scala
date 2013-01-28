@@ -15,6 +15,9 @@ import dk.tennis.dbn.utils._
 import dk.tennis.dbn.clustergraph.GenericTennisClusterGraph
 import dk.tennis.dbn.clustergraph.TennisVar
 import clustergraph.TennisClusterGraph
+import LoopyBP._
+import scala.util.Random
+import dk.bayes.infer.MessageOrder
 
 /**
  * @see DbnTennis
@@ -119,8 +122,13 @@ case class GenericTennisDBN(priorProb: Array[Double], emissionProb: Array[Double
   }
 
   def calibrate(iterNum: (Int) => Unit = (iterNum: Int) => {}) {
+
+    val rand = new Random(System.currentTimeMillis())
+    val randMsgOrder = new MessageOrder {
+      def ordered(clusters: Seq[Cluster]): Seq[Cluster] = rand.shuffle(clusters)
+    }
     tennisClusterGraph.getClusterGraph.getClusters().foreach(c => c.resetMessages())
-    loopyBP.calibrate(iterNum)
+    loopyBP.calibrate(iterNum, randMsgOrder)
   }
 }
 

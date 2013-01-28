@@ -9,7 +9,7 @@ import dk.tennis.dbn.util.AssertUtil._
 
 class GenericDbnTennisTest {
 
-  val priorProb = Array(0.2, 0.3, 0.5)
+  val priorProb = Array(0.2, 0.5, 0.3)
 
   val emissionProb = Array(
     0.5, 0.5,
