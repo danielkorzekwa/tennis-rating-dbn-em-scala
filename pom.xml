@@ -7,7 +7,7 @@
 	<groupId>dk.tennis.dbn</groupId>
 	<artifactId>tennis-rating-dbn</artifactId>
 	<name>tennis-rating-dbn</name>
-	<version>0.2-SNAPSHOT</version>
+	<version>0.2</version>
 	<inceptionYear>2011</inceptionYear>
 	<url>https://github.com/danielkorzekwa/tennis-rating-dbn-em-scala</url>
 
@@ -111,7 +111,7 @@
 		<dependency>
 			<groupId>dk.bayes</groupId>
 			<artifactId>bayes-scala</artifactId>
-			<version>0.2-SNAPSHOT</version>
+			<version>0.2</version>
 		</dependency>
 
 		<!-- External dependencies -->
